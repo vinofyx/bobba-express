@@ -1,14 +1,13 @@
 const express = require('express');
-const router = express.Router();
-const { createCustomer, getCustomers, getCustomerById } = require('../controllers/customer.controller');
+const router  = express.Router();
+const { createCustomer, getCustomers, getCustomerById, updateCustomer, deleteCustomer } = require('../controllers/customer.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// POST /api/customers - Create new customer
-router.post('/', createCustomer);
-
-// GET /api/customers - Get all customers
-router.get('/', getCustomers);
-
-// GET /api/customers/:id - Get customer by ID
-router.get('/:id', getCustomerById);
+// Phase 12: All customer routes require auth; delete = admin only
+router.post  ('/',    authenticate,                          createCustomer);
+router.get   ('/',    authenticate,                          getCustomers);
+router.get   ('/:id', authenticate,                          getCustomerById);
+router.put   ('/:id', authenticate,                          updateCustomer);
+router.delete('/:id', authenticate, authorize('admin'),      deleteCustomer);
 
 module.exports = router;

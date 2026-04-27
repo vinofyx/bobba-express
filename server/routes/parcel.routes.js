@@ -1,14 +1,12 @@
 const express = require('express');
-const router = express.Router();
-const { createParcelFromPickup, updateParcelStatus, getParcelsByStatus } = require('../controllers/parcel.controller');
+const router  = express.Router();
+const { createParcel, getParcels, getParcelById, updateParcelStatus } = require('../controllers/parcel.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// POST /api/parcels - Create parcel from pickup
-router.post('/', createParcelFromPickup);
-
-// PATCH /api/parcels/:id/status - Update parcel status
-router.patch('/:id/status', updateParcelStatus);
-
-// GET /api/parcels - Get parcels with optional status filter
-router.get('/', getParcelsByStatus);
+// Phase 7 + 8: Parcel CRUD + status updates with tracking logs
+router.post  ('/',           authenticate,                          createParcel);
+router.get   ('/',           authenticate,                          getParcels);
+router.get   ('/:id',        authenticate,                          getParcelById);
+router.patch ('/:id/status', authenticate,                          updateParcelStatus);
 
 module.exports = router;

@@ -1,9 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice.js';
 
-console.log("Configuring Redux store...");
-console.log("authReducer:", authReducer);
-
 // Configure Redux store
 const store = configureStore({
   reducer: {
@@ -25,7 +22,5 @@ const store = configureStore({
     }),
   devTools: import.meta.env.DEV,
 });
-
-console.log("Store configured:", store.getState());
 
 export default store;

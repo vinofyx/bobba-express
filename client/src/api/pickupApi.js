@@ -38,6 +38,11 @@ export const pickupAPI = {
 
   // Assign agent to pickup
   assignAgent: (id, agentId) => {
-    return axiosInstance.patch(`/pickups/${id}`, { assignedAgent: agentId });
+    return axiosInstance.put(`/pickups/${id}/assign`, { agentId });
+  },
+
+  // Get only my pickups (agent view)
+  getMyPickups: () => {
+    return axiosInstance.get('/pickups', { params: { onlyMine: true } });
   },
 };

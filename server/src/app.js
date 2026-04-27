@@ -12,8 +12,8 @@ const customerRoutes = require("../routes/customer.routes");
 const pickupRoutes   = require("../routes/pickup.routes");
 const parcelRoutes   = require("../routes/parcel.routes");
 const shipmentRoutes = require("../routes/shipment.routes");
-const trackingRoutes = require("../routes/tracking.routes");
-const workflowRoutes = require("../routes/workflow.routes");
+const trackingRoutes  = require("../routes/tracking.routes");
+const dashboardRoutes = require("../routes/dashboard.routes");
 
 connectDB();
 
@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // ── Health ────────────────────────────────────────────────────────────────────
-app.get("/",       (_, res) => res.json({ success: true, message: "MobiExpress API" }));
+app.get("/",       (_, res) => res.json({ success: true, message: "BobbaExpress API" }));
 app.get("/health", (_, res) => res.json({ success: true, message: "OK" }));
 
 // ── API Routes ─────────────────────────────────────────────────────────────────
@@ -44,7 +44,7 @@ app.use("/api/pickups",   pickupRoutes);
 app.use("/api/parcels",   parcelRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/tracking",  trackingRoutes);
-app.use("/api/workflow",   workflowRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) =>

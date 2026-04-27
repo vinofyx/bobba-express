@@ -4,7 +4,7 @@ import { logout, refreshTokenSuccess } from '../store/slices/authSlice.js';
 
 // Create axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000,
   withCredentials: true, // Important for httpOnly cookies
   headers: {
@@ -39,30 +39,27 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Attempt to refresh the token
-        const refreshToken = getRefreshTokenFromCookie();
-        if (refreshToken) {
-          const response = await axios.post(
-            `${axiosInstance.defaults.baseURL}/auth/refresh`,
-            {},
-            {
-              withCredentials: true, // Important for httpOnly cookies
-            }
-          );
+        // Attempt to refresh the token using the refresh endpoint
+        const response = await axios.post(
+          `${axiosInstance.defaults.baseURL}/auth/refresh`,
+          {},
+          {
+            withCredentials: true, // Important for httpOnly cookies
+          }
+        );
 
-          const { token } = response.data.data;
-          
-          // Update Redux store with new token
-          store.dispatch(refreshTokenSuccess({ token }));
+        const { token } = response.data;
+        
+        // Update Redux store with new token
+        store.dispatch(refreshTokenSuccess({ token }));
 
-          // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return axiosInstance(originalRequest);
-        }
+        // Retry the original request with new token
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return axiosInstance(originalRequest);
       } catch (refreshError) {
         // If refresh fails, logout user
         store.dispatch(logout());
-        // Redirect to login page
+        // Use navigate instead of window.location for React Router
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
@@ -72,11 +69,5 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Helper function to get refresh token from httpOnly cookie
-const getRefreshTokenFromCookie = () => {
-  // This will need to be implemented based on your cookie handling
-  // For now, return null - you'll need to implement proper cookie reading
-  return null;
-};
 
 export default axiosInstance;

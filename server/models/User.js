@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true,
     minlength: [2, 'Name must be at least 2 characters'],
-    maxlength: [100, 'Name cannot exceed 100 characters']
+    maxlength: [100, 'Name cannot exceed 100 characters'],
   },
   email: {
     type: String,
@@ -15,46 +15,33 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
   },
   password: {
     type: String,
     required: [true, 'Password is required'],
     minlength: [8, 'Password must be at least 8 characters'],
-    select: false // Don't include password in queries by default
+    select: false,
   },
   role: {
     type: String,
-    enum: ['admin', 'agent', 'customer', 'staff'],
-    default: 'customer'
+    enum: ['admin', 'agent', 'staff'],
+    default: 'staff',
   },
   phone: {
     type: String,
-    match: [/^[6-9]\d{9}$/, 'Please provide a valid phone number']
+    match: [/^[6-9]\d{9}$/, 'Please provide a valid 10-digit phone number'],
   },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  lastLogin: {
-    type: Date
-  },
-  refreshToken: {
-    type: String,
-    select: false // Don't include refresh token in queries by default
-  }
-}, {
-  timestamps: true
-});
+  isActive: { type: Boolean, default: true },
+  lastLogin: { type: Date },
+  refreshToken: { type: String, select: false },
+}, { timestamps: true });
 
-
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Index for faster queries
-userSchema.index({ email: 1 });
+// role index only — email uniqueness already enforced by schema
 userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

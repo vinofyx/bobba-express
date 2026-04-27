@@ -1,17 +1,13 @@
 const express = require('express');
-const router = express.Router();
-const { createShipment, getShipments, dispatchShipment, receiveShipment } = require('../controllers/shipment.controller');
+const router  = express.Router();
+const { createShipment, getShipments, getShipmentById, dispatchShipment, receiveShipment } = require('../controllers/shipment.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// POST /api/shipments - Create shipment
-router.post('/', createShipment);
-
-// PATCH /api/shipments/:id/dispatch - Dispatch shipment
-router.patch('/:id/dispatch', dispatchShipment);
-
-// PATCH /api/shipments/:id/receive - Receive shipment
-router.patch('/:id/receive', receiveShipment);
-
-// GET /api/shipments - Get all shipments
-router.get('/', getShipments);
+// Phase 9: Shipment hub system
+router.post  ('/',              authenticate, authorize('admin','staff'), createShipment);
+router.get   ('/',              authenticate,                             getShipments);
+router.get   ('/:id',           authenticate,                             getShipmentById);
+router.patch ('/:id/dispatch',  authenticate, authorize('admin','staff'), dispatchShipment);
+router.patch ('/:id/receive',   authenticate, authorize('admin','staff'), receiveShipment);
 
 module.exports = router;

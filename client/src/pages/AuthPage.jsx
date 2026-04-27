@@ -5,13 +5,12 @@ import { loginSuccess } from "../store/slices/authSlice";
 import { authAPI } from "../api/auth.api";
 
 export default function AuthPage() {
-  console.log("AuthPage rendering...");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [mode, setMode] = useState("login"); // "login" | "register"
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "center_staff" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "staff" });
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
@@ -53,9 +52,9 @@ export default function AuthPage() {
       {/* Left Panel */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 80px", color: "#fff" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 48 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800 }}>M</div>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800 }}>B</div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800 }}>MobiExpress</div>
+            <div style={{ fontSize: 18, fontWeight: 800 }}>BobbaExpress</div>
             <div style={{ fontSize: 11, color: "#94a3b8" }}>Logistics Platform</div>
           </div>
         </div>
@@ -126,10 +125,8 @@ export default function AuthPage() {
                 <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Role</label>
                 <select style={inp} value={form.role} onChange={set("role")}>
                   <option value="admin">Admin</option>
-                  <option value="operations_manager">Operations Manager</option>
-                  <option value="center_staff">Center Staff</option>
-                  <option value="hub_staff">Hub Staff</option>
-                  <option value="field_agent">Field Agent</option>
+                  <option value="agent">Agent</option>
+                  <option value="staff">Staff</option>
                 </select>
               </div>
             )}
