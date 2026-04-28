@@ -10,6 +10,7 @@ import ParcelsPage   from './pages/ParcelsPage'
 import ShipmentsPage from './pages/ShipmentsPage'
 import AgentPage     from './pages/AgentPage'
 import TrackingPage  from './pages/TrackingPage'
+import UsersPage     from './pages/UsersPage'
 
 function PrivateRoute({ children }) {
   const token = useSelector((s) => s.auth.token)
@@ -26,27 +27,49 @@ function DefaultRedirect() {
   return <Navigate to={user?.role === 'agent' ? '/agent' : '/dashboard'} replace />
 }
 
+// Phase 12: Role-gated route — redirects if user lacks required role
+function RoleRoute({ roles, children }) {
+  const { token, user } = useSelector((s) => s.auth)
+  if (!token) return <Navigate to="/login" replace />
+  if (!roles.includes(user?.role))
+    return <Navigate to={user?.role === 'agent' ? '/agent' : '/dashboard'} replace />
+  return children
+}
+
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Phase 3: Auth — public */}
+        {/* Auth — public */}
         <Route path="/login" element={<PublicRoute><AuthPage /></PublicRoute>} />
 
-        {/* Phase 8: Tracking — public, no login required */}
+        {/* Tracking — public, no login required */}
         <Route path="/tracking" element={<TrackingPage />} />
 
-        {/* Phase 6: Agent panel — full-screen mobile view */}
-        <Route path="/agent" element={<PrivateRoute><AgentPage /></PrivateRoute>} />
+        {/* Agent panel — agents only, full-screen mobile view */}
+        <Route path="/agent" element={
+          <RoleRoute roles={['agent','admin','staff']}>
+            <AgentPage />
+          </RoleRoute>
+        } />
 
-        {/* Phase 4-5-7-9-13: Admin / Staff — sidebar layout */}
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+        {/* Admin / Staff — sidebar layout */}
+        <Route path="/" element={
+          <RoleRoute roles={['admin','staff']}>
+            <Layout />
+          </RoleRoute>
+        }>
           <Route index element={<DefaultRedirect />} />
           <Route path="dashboard"  element={<DashboardPage />} />
           <Route path="customers"  element={<CustomersPage />} />
           <Route path="pickups"    element={<PickupsPage />} />
           <Route path="parcels"    element={<ParcelsPage />} />
           <Route path="shipments"  element={<ShipmentsPage />} />
+          <Route path="users"      element={
+            <RoleRoute roles={['admin']}>
+              <UsersPage />
+            </RoleRoute>
+          } />
         </Route>
 
         <Route path="*" element={<DefaultRedirect />} />

@@ -37,21 +37,28 @@ const send = async (phone, message) => {
     const response = await axios.post(
       'https://www.fast2sms.com/dev/bulkV2',
       {
-        route:    'q',           // Quick SMS (transactional)
+        authorization: API_KEY,  // Fast2SMS expects auth in body
+        route:         'v3',     // v3 = Quick SMS, no DLT registration needed
         message,
-        language: 'english',
-        flash:    0,
-        numbers:  cleaned,
+        language:      'english',
+        flash:         0,
+        numbers:       cleaned,
       },
       {
         headers: { authorization: API_KEY },
         timeout: 8000,
       }
     );
-    console.log(`[SMS] Sent to ${cleaned}: ${response.data?.return ? 'OK' : 'Failed'}`);
+
+    if (response.data?.return === true) {
+      console.log(`[SMS] Sent to +91${cleaned} ✓`);
+    } else {
+      // Fast2SMS returns 200 but return:false on soft failures (invalid number, quota, etc.)
+      console.error(`[SMS] Fast2SMS rejected message to ${cleaned}:`, JSON.stringify(response.data));
+    }
   } catch (err) {
     // Never throw — SMS failure must not break the main API response
-    console.error(`[SMS] Error sending to ${cleaned}:`, err.message);
+    console.error(`[SMS] Error sending to ${cleaned}:`, err.response?.data || err.message);
   }
 };
 

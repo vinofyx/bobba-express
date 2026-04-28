@@ -31,13 +31,8 @@ export const usersAPI = {
     return axiosInstance.put(`/users/${id}`, userData);
   },
 
-  // Delete user
-  delete: (id) => {
-    return axiosInstance.delete(`/users/${id}`);
-  },
-
-  // Search users
-  search: (query) => {
-    return axiosInstance.get('/users', { params: { search: query } });
+  // Toggle active/inactive
+  toggle: (id) => {
+    return axiosInstance.patch(`/users/${id}/toggle`);
   },
 };

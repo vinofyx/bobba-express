@@ -3,12 +3,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/slices/authSlice'
 
 const NAV = [
-  { to: '/dashboard', label: 'Dashboard', icon: '▦' },
-  { to: '/customers', label: 'Customers', icon: '◎' },
-  { to: '/pickups',   label: 'Pickups',   icon: '◈' },
-  { to: '/parcels',   label: 'Parcels',   icon: '▣' },
-  { to: '/shipments', label: 'Shipments', icon: '◩' },
-  { to: '/tracking',  label: 'Tracking',  icon: '📍' },
+  { to: '/dashboard', label: 'Dashboard', icon: '▦', roles: ['admin','staff'] },
+  { to: '/customers', label: 'Customers', icon: '◎', roles: ['admin','staff'] },
+  { to: '/pickups',   label: 'Pickups',   icon: '◈', roles: ['admin','staff'] },
+  { to: '/parcels',   label: 'Parcels',   icon: '▣', roles: ['admin','staff'] },
+  { to: '/shipments', label: 'Shipments', icon: '◩', roles: ['admin','staff'] },
+  { to: '/tracking',  label: 'Tracking',  icon: '📍', roles: ['admin','staff'] },
+  { to: '/users',     label: 'Users',     icon: '◉', roles: ['admin'] },
 ]
 
 export default function Layout() {
@@ -40,7 +41,7 @@ export default function Layout() {
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '14px 10px', overflowY: 'auto' }}>
-          {NAV.map(({ to, label, icon }) => (
+          {NAV.filter(({ roles }) => roles.includes(user?.role)).map(({ to, label, icon }) => (
             <NavLink key={to} to={to}
               style={({ isActive }) => ({
                 display: 'flex', alignItems: 'center', gap: 10,
