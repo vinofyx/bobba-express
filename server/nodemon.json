@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "controllers", "routes", "services", "models", "middleware", ".env"],
+  "ext": "js,json,env",
+  "ignore": ["node_modules"],
+  "delay": 500
+}

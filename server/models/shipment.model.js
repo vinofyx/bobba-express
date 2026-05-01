@@ -4,19 +4,51 @@ const shipmentSchema = new mongoose.Schema({
   shipmentId: {
     type: String,
     unique: true,
-    default: () => 'SHP' + Date.now().toString(36).toUpperCase(),
+    default: () => 'SH-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 900) + 100).padStart(3, '0'),
   },
-  parcels:       [{ type: mongoose.Schema.Types.ObjectId, ref: 'Parcel' }],
-  vehicleNumber: { type: String, required: true, trim: true },
+  parcels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Parcel' }],
+
+  // Top-level flat fields — used by the frontend form
+  vehicleNumber: { type: String },
+
+  // Route information — optional; populated from originHub/destinationHub
+  route: {
+    origin: {
+      city:  { type: String },
+      state: { type: String },
+    },
+    destination: {
+      city:  { type: String },
+      state: { type: String },
+    },
+    distance:          { type: Number, default: 0 },
+    estimatedDuration: { type: Number, default: 0 },
+  },
+
+  // Driver info — stored inline (no User FK required)
   driver: {
-    name:  { type: String, required: true },
-    phone: { type: String },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    name:   { type: String },
+    phone:  { type: String },
+    licenseNumber: { type: String },
   },
-  originHub:      { type: String },
-  destinationHub: { type: String },
+
+  // Vehicle info
+  vehicle: {
+    number:   { type: String },
+    type:     { type: String, enum: ['van', 'truck', 'motorcycle', 'bicycle'], default: 'van' },
+    capacity: { type: Number, default: 100 },
+  },
+
+  // Schedule
+  departureTime:    { type: Date },
+  estimatedArrival: { type: Date },
+  actualArrival:    { type: Date },
+
+  // Status
   status: {
     type: String,
-    enum: ['Created', 'Dispatched', 'In Transit', 'Received', 'Cancelled'],
+    enum: ['Created', 'Dispatched', 'In Transit', 'Received', 'Completed', 'Cancelled'],
     default: 'Created',
   },
   statusHistory: [{
@@ -26,9 +58,24 @@ const shipmentSchema = new mongoose.Schema({
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     timestamp: { type: Date, default: Date.now },
   }],
+
+  // Hub labels (primary display fields)
+  originHub:      { type: String },
+  destinationHub: { type: String },
+
   dispatchedAt: Date,
   receivedAt:   Date,
-  createdBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  deliveredAt:  Date,
+
+  deliveryProof: {
+    photoProof:    String,
+    recipientName: String,
+    signature:     String,
+    deliveredBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    deliveredAt:   Date,
+  },
+
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 shipmentSchema.index({ status: 1 });

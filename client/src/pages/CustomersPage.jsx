@@ -73,7 +73,13 @@ export default function CustomersPage() {
       }
       closeModal(); fetchCustomers()
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to save customer.')
+      // Show specific field errors from Joi validation (422) or fallback message
+      const data = err?.response?.data
+      if (data?.data?.errors?.length) {
+        setError(data.data.errors.join(' • '))
+      } else {
+        setError(data?.message || 'Failed to save customer.')
+      }
     } finally { setSaving(false) }
   }
 

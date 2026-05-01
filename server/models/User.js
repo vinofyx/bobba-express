@@ -34,6 +34,8 @@ const userSchema = new mongoose.Schema({
   },
   isActive: { type: Boolean, default: true },
   lastLogin: { type: Date },
+  loginAttempts: { type: Number, default: 0, select: false },
+  lockUntil: { type: Date, select: false },
   refreshToken: { type: String, select: false },
 }, { timestamps: true });
 

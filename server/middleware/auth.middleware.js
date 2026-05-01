@@ -4,6 +4,7 @@ const User = require('../models/User');
 // Phase 3 + 12: authenticate — verify JWT, attach req.user
 const authenticate = async (req, res, next) => {
   try {
+    console.log('🔐 Auth middleware called');
     const header = req.headers.authorization;
     if (!header?.startsWith('Bearer '))
       return res.status(401).json({ success: false, message: 'Authentication token missing or malformed.' });
@@ -12,6 +13,7 @@ const authenticate = async (req, res, next) => {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ Token verified for user:', decoded.id);
     } catch (err) {
       const msg = err.name === 'TokenExpiredError'
         ? 'Session expired. Please log in again.'
@@ -20,12 +22,16 @@ const authenticate = async (req, res, next) => {
     }
 
     const user = await User.findById(decoded.id).select('-password -refreshToken');
-    if (!user || !user.isActive)
+    if (!user || !user.isActive) {
+      console.log('❌ User not found or inactive');
       return res.status(401).json({ success: false, message: 'Account not found or deactivated.' });
+    }
 
+    console.log('✅ User authenticated:', user.email);
     req.user = user;
     next();
   } catch (err) {
+    console.error('❌ Auth error:', err);
     return res.status(500).json({ success: false, message: 'Authentication error.' });
   }
 };

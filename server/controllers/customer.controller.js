@@ -1,26 +1,75 @@
 const Customer = require('../models/customer.model');
 
+// Generate customer ID
+const generateCustomerId = async () => {
+  const prefix = 'CUST';
+  const count = await Customer.countDocuments();
+  const nextId = String(count + 1).padStart(3, '0');
+  return `${prefix}-${nextId}`;
+};
+
 // POST /api/customers
 const createCustomer = async (req, res) => {
   try {
     const { type, name, companyName, gst, phone, email, address } = req.body;
 
-    if (!name)    return res.status(400).json({ success: false, message: 'name is required.' });
-    if (!phone)   return res.status(400).json({ success: false, message: 'phone is required.' });
-    if (!address) return res.status(400).json({ success: false, message: 'address is required.' });
-    if (type === 'B2B' && !companyName)
-      return res.status(400).json({ success: false, message: 'companyName is required for B2B customers.' });
+    // Check for duplicate phone number
+    const existingPhone = await Customer.findOne({ phone, isActive: true });
+    if (existingPhone) {
+      return res.status(409).json({ 
+        success: false, 
+        message: 'Phone number already exists' 
+      });
+    }
+
+    // Check for duplicate email (if provided)
+    if (email) {
+      const existingEmail = await Customer.findOne({ email, isActive: true });
+      if (existingEmail) {
+        return res.status(409).json({ 
+          success: false, 
+          message: 'Email already exists' 
+        });
+      }
+    }
+
+    // Generate customer ID
+    const customerId = await generateCustomerId();
 
     const customer = await Customer.create({
-      type: type || 'B2C', name, companyName, gst, phone, email, address,
+      customerId,
+      type: type || 'B2C', 
+      name, 
+      companyName, 
+      gst, 
+      phone, 
+      email, 
+      address,
+      isActive: true,
       createdBy: req.user?._id,
     });
 
-    return res.status(201).json({ success: true, data: { customer } });
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Customer created successfully',
+      data: { customer } 
+    });
   } catch (err) {
-    if (err.code === 11000)
-      return res.status(409).json({ success: false, message: 'This phone number is already registered.' });
-    return res.status(500).json({ success: false, message: err.message });
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0];
+      const message = field === 'phone'
+        ? 'A customer with this phone number already exists.'
+        : field === 'email'
+        ? 'A customer with this email already exists.'
+        : 'Duplicate entry detected.';
+      return res.status(409).json({ success: false, message });
+    }
+    // Mongoose validation error — surface the real field message
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(e => e.message);
+      return res.status(422).json({ success: false, message: messages.join(' • ') });
+    }
+    return res.status(500).json({ success: false, message: err.message || 'Failed to create customer.' });
   }
 };
 

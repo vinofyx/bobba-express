@@ -48,8 +48,10 @@ axiosInstance.interceptors.response.use(
           }
         );
 
-        const { token } = response.data;
-        
+        // Server returns { success: true, data: { accessToken: '...' } }
+        const token = response.data?.data?.accessToken;
+        if (!token) throw new Error('No access token in refresh response');
+
         // Update Redux store with new token
         store.dispatch(refreshTokenSuccess({ token }));
 

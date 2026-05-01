@@ -1,0 +1,16 @@
+This is a placeholder file for delivery-proof.jpg
+In a real test environment, this would be an actual image file.
+For testing purposes, you can use any JPEG image file and rename it to delivery-proof.jpg
+
+Example test files you can use:
+- A photo of a delivered package
+- A signature image
+- Any JPEG image file at least 400x300 pixels
+
+To create a test image:
+1. Take any photo with your phone
+2. Save it as JPEG
+3. Place it in cypress/fixtures/delivery-proof.jpg
+4. The tests will use this file for photo upload testing
+
+For now, you can use any existing JPEG file and copy it to this location.

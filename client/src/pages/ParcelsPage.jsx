@@ -93,33 +93,82 @@ function ParcelDetail({ parcel, onClose }) {
   const b    = STATUS_COLORS[parcel.status] || { bg: '#f1f5f9', color: '#475569' }
 
   const handlePrint = () => {
-    const w = window.open('', '_blank', 'width=400,height=500')
+    // ── Generate barcode SVG as a plain string (React component can't run in a popup) ──
+    const generateBarcodeSVG = (value) => {
+      if (!value) return ''
+      const hex  = value.replace(/-/g, '')          // strip dashes → 32 hex chars
+      const bars = []
+
+      // quiet zone + start guard
+      bars.push({ w: 10, dark: false })
+      bars.push({ w: 2, dark: true }); bars.push({ w: 1, dark: false }); bars.push({ w: 2, dark: true })
+
+      // encode each hex nibble as a bar pattern
+      for (let i = 0; i < hex.length; i++) {
+        const n    = parseInt(hex[i], 16)            // 0–15
+        const wide = n > 7                           // 8–15 → wide bar
+        bars.push({ w: wide ? 3 : 1, dark: true  })
+        bars.push({ w: 1,            dark: false })
+        bars.push({ w: (n % 4) + 1,  dark: true  })
+        bars.push({ w: 1,            dark: false })
+      }
+
+      // stop guard + quiet zone
+      bars.push({ w: 2, dark: true }); bars.push({ w: 1, dark: false }); bars.push({ w: 3, dark: true })
+      bars.push({ w: 10, dark: false })
+
+      const SCALE  = 1.4
+      const HEIGHT = 64
+      const totalW = bars.reduce((s, b) => s + b.w, 0) * SCALE
+      let x = 0
+      let rects = ''
+      for (const b of bars) {
+        if (b.dark) rects += `<rect x="${x}" y="0" width="${b.w * SCALE}" height="${HEIGHT}" fill="#0f172a"/>`
+        x += b.w * SCALE
+      }
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${HEIGHT}" style="display:block;margin:0 auto 4px;">${rects}</svg>`
+    }
+
+    const barcodeSVG = generateBarcodeSVG(parcel.barcode)
+
+    // ── Open print window (with null-guard in case browser blocks the popup) ──
+    const w = window.open('', '_blank', 'width=420,height=620')
+    if (!w) {
+      alert('Popup was blocked. Please allow popups for this site and try again.')
+      return
+    }
+
     w.document.write(`
       <html><head><title>Parcel Label — ${parcel.trackingId}</title>
       <style>
-        body { font-family: monospace; padding: 24px; }
-        h2   { font-size: 16px; margin: 0 0 8px; }
-        .sub { font-size: 11px; color: #555; margin-bottom: 16px; }
-        svg  { display: block; margin: 0 auto 6px; }
-        .tid { font-size: 13px; text-align: center; font-weight: bold; margin-bottom: 4px; }
-        .bc  { font-size: 9px;  text-align: center; word-break: break-all; }
-        hr   { border: none; border-top: 1px dashed #ccc; margin: 12px 0; }
-        .row { display: flex; justify-content: space-between; font-size: 11px; margin: 4px 0; }
+        body  { font-family: monospace; padding: 24px; margin: 0; }
+        h2    { font-size: 16px; margin: 0 0 4px; font-weight: 900; }
+        .sub  { font-size: 11px; color: #555; margin-bottom: 14px; }
+        .tid  { font-size: 14px; text-align: center; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; }
+        .bc-wrap { text-align: center; margin-bottom: 4px; }
+        .bc   { font-size: 9px; text-align: center; word-break: break-all; color: #475569; margin-bottom: 12px; }
+        hr    { border: none; border-top: 1px dashed #ccc; margin: 12px 0; }
+        .row  { display: flex; justify-content: space-between; font-size: 11px; margin: 5px 0; }
+        @media print { body { padding: 12px; } }
       </style></head><body>
       <h2>Bobba Express</h2>
       <div class="sub">Parcel Shipping Label</div>
       <hr/>
       <div class="tid">${parcel.trackingId}</div>
-      <div id="bc-container"></div>
+      <div class="bc-wrap">${barcodeSVG}</div>
       <div class="bc">${parcel.barcode || ''}</div>
       <hr/>
       <div class="row"><span>Customer</span><span>${parcel.customer?.name || '—'}</span></div>
       <div class="row"><span>Weight</span><span>${parcel.weight} kg</span></div>
       <div class="row"><span>Type</span><span>${parcel.type}</span></div>
-      ${parcel.codAmount > 0 ? `<div class="row"><span>COD</span><span>₹${parcel.codAmount}</span></div>` : ''}
+      ${parcel.codAmount > 0 ? `<div class="row"><span>COD</span><span>&#8377;${parcel.codAmount}</span></div>` : ''}
       <div class="row"><span>Created</span><span>${fmt(parcel.createdAt)}</span></div>
       <hr/>
-      <script>window.onload = () => { window.print(); window.close(); }</script>
+      <script>
+        window.onload = function() {
+          window.print();
+        }
+      <\/script>
       </body></html>
     `)
     w.document.close()

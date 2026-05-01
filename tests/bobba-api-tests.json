@@ -1,0 +1,415 @@
+{
+	"info": {
+		"_postman_id": "bobba-express-api-tests",
+		"name": "BobbaExpress API Tests",
+		"description": "Complete API test suite for BobbaExpress application covering authentication, customer creation, pickup scheduling, shipment management, and tracking functionality.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "POST /auth/login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Token returned\", () => pm.expect(pm.response.json().token).to.exist);",
+									"pm.environment.set(\"TOKEN\", pm.response.json().token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@bobba.com\",\n  \"password\": \"Admin@1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customer Management",
+			"item": [
+				{
+					"name": "POST /customers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+									"pm.test(\"Customer ID returned\", () => pm.expect(pm.response.json().id).to.exist);",
+									"pm.environment.set(\"CUSTOMER_ID\", pm.response.json().id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Ahmad Zulkifli\",\n  \"email\": \"ahmad@test.com\",\n  \"phone\": \"0123456789\",\n  \"address\": \"No 5, Jalan Ampang, KL\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/customers",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"customers"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pickup Management",
+			"item": [
+				{
+					"name": "POST /pickups",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+									"pm.test(\"Status is pending\", () => pm.expect(pm.response.json().status).to.eql(\"pending\"));",
+									"pm.environment.set(\"PICKUP_ID\", pm.response.json().id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"{{CUSTOMER_ID}}\",\n  \"pickupDate\": \"2025-04-29\",\n  \"pickupTime\": \"10:00\",\n  \"parcelCount\": 3,\n  \"notes\": \"Fragile items\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/pickups",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pickups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH /pickups/{{PICKUP_ID}}/assign",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Status is assigned\", () => pm.expect(pm.response.json().status).to.eql(\"assigned\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"agentId\": \"agent-001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/pickups/{{PICKUP_ID}}/assign",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pickups",
+								"{{PICKUP_ID}}",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH /pickups/{{PICKUP_ID}}/complete",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Status is completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "actualCount",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "notes",
+									"value": "All collected",
+									"type": "text"
+								},
+								{
+									"key": "photo",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/pickups/{{PICKUP_ID}}/complete",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pickups",
+								"{{PICKUP_ID}}",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Parcel Management",
+			"item": [
+				{
+					"name": "GET /parcels?pickupId={{PICKUP_ID}}",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"3 parcels created\", () => pm.expect(pm.response.json().data.length).to.eql(3));",
+									"pm.environment.set(\"PARCEL_1\", pm.response.json().data[0].trackingNumber);",
+									"pm.environment.set(\"PARCEL_2\", pm.response.json().data[1].trackingNumber);",
+									"pm.environment.set(\"PARCEL_3\", pm.response.json().data[2].trackingNumber);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/parcels?pickupId={{PICKUP_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"parcels"
+							],
+							"query": [
+								{
+									"key": "pickupId",
+									"value": "{{PICKUP_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shipment Management",
+			"item": [
+				{
+					"name": "POST /shipments",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+									"pm.test(\"Shipment ID returned\", () => pm.expect(pm.response.json().id).to.exist);",
+									"pm.environment.set(\"SHIPMENT_ID\", pm.response.json().id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"origin\": \"Kuala Lumpur\",\n  \"destination\": \"Johor Bahru\",\n  \"driverId\": \"driver-001\",\n  \"departureDate\": \"2025-04-29\",\n  \"departureTime\": \"08:00\",\n  \"parcelIds\": [\"{{PARCEL_1}}\", \"{{PARCEL_2}}\", \"{{PARCEL_3}}\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/shipments",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"shipments"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tracking",
+			"item": [
+				{
+					"name": "GET /tracking/{{PARCEL_1}}",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Timeline has 3 steps\", () => pm.expect(pm.response.json().timeline.length).to.be.gte(3));",
+									"pm.test(\"In Transit\", () => pm.expect(pm.response.json().currentStatus).to.eql(\"in_transit\"));",
+									"pm.test(\"ETA present\", () => pm.expect(pm.response.json().eta).to.exist);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/tracking/{{PARCEL_1}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tracking",
+								"{{PARCEL_1}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:5000/api",
+			"type": "string"
+		}
+	]
+}

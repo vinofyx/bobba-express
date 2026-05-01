@@ -1,17 +1,30 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Load token and user from localStorage on init
-const savedToken = localStorage.getItem('token');
-const savedUser = localStorage.getItem('user');
+// Load token and user from localStorage — sanitize both values on startup
+const rawToken = localStorage.getItem('token');
+// Guard against literal "undefined" stored by a broken refresh interceptor
+const savedToken = (rawToken && rawToken !== 'undefined') ? rawToken : null;
+if (!savedToken && rawToken) localStorage.removeItem('token'); // wipe bad value
+
+let savedUserObj = null;
+try {
+  const raw = localStorage.getItem('user');
+  savedUserObj = raw ? JSON.parse(raw) : null;
+  // Wipe user if there's no valid token — they go together
+  if (!savedToken) { localStorage.removeItem('user'); savedUserObj = null; }
+} catch {
+  localStorage.removeItem('user');
+  savedUserObj = null;
+}
 
 const initialState = {
-  user: savedUser ? JSON.parse(savedUser) : null,
-  token: savedToken || null,
-  isAuthenticated: !!savedToken,
-  loading: false,
-  error: null,
-  role: savedUser ? JSON.parse(savedUser)?.role : null,
-  registered: false,
+  user:            savedUserObj,
+  token:           savedToken,
+  isAuthenticated: !!(savedToken && savedUserObj),
+  loading:         false,
+  error:           null,
+  role:            savedUserObj?.role || null,
+  registered:      false,
 };
 
 const authSlice = createSlice({

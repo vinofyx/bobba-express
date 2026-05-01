@@ -7,38 +7,45 @@ const addressSchema = new mongoose.Schema({
   city:    { type: String, required: [true, 'City is required'],    trim: true },
   state:   { type: String, required: [true, 'State is required'],   trim: true },
   pincode: {
-    type: String, required: [true, 'Pincode is required'],
-    match: [/^\d{6}$/, 'Pincode must be 6 digits'],
+    type:  String,
+    required: [true, 'Pincode / ZIP is required'],
+    trim: true,
+    match: [/^[A-Za-z0-9\s\-]{3,10}$/, 'Enter a valid postal/ZIP code (3–10 characters)'],
   },
 }, { _id: false });
 
 // ── Customer schema ──────────────────────────────────────────────────────────
 const customerSchema = new mongoose.Schema({
-  // B2B or B2C
-  type: {
-    type: String,
-    enum: ['B2B', 'B2C'],
-    default: 'B2C',
+  // Auto-generated customer ID
+  customerId: {
+    type:     String,
+    unique:   true,
     required: true,
   },
 
-  // Contact person name (required for both B2B & B2C)
+  // B2B or B2C
+  type: {
+    type:     String,
+    enum:     ['B2B', 'B2C'],
+    default:  'B2C',
+    required: true,
+  },
+
+  // Contact person name
   name: {
-    type: String,
+    type:     String,
     required: [true, 'Name is required'],
-    trim: true,
+    trim:     true,
+    minlength: [2, 'Name must be at least 2 characters'],
   },
 
   // Company name — required for B2B, optional for B2C
-  companyName: {
-    type: String,
-    trim: true,
-  },
+  companyName: { type: String, trim: true },
 
-  // GST — only meaningful for B2B
+  // GST — optional, only for B2B
   gst: {
-    type: String,
-    trim: true,
+    type:      String,
+    trim:      true,
     uppercase: true,
     match: [
       /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
@@ -46,30 +53,32 @@ const customerSchema = new mongoose.Schema({
     ],
   },
 
+  // International-friendly phone: digits only, 7–15 chars, optional leading +
   phone: {
-    type: String,
+    type:     String,
     required: [true, 'Phone number is required'],
-    match: [/^[6-9]\d{9}$/, 'Enter a valid 10-digit Indian mobile number'],
+    trim:     true,
+    match: [
+      /^\+?[\d\s\-()]{7,20}$/,
+      'Enter a valid phone number (7–15 digits, optional country code)',
+    ],
   },
 
   email: {
-    type: String,
+    type:      String,
     lowercase: true,
-    trim: true,
-    match: [/^\S+@\S+\.\S+$/, 'Invalid email'],
+    trim:      true,
+    match:     [/^\S+@\S+\.\S+$/, 'Invalid email address'],
   },
 
   address: {
-    type: addressSchema,
+    type:     addressSchema,
     required: [true, 'Address is required'],
   },
 
-  isActive: { type: Boolean, default: true },
-
+  isActive:  { type: Boolean, default: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-}, {
-  timestamps: true,
-});
+}, { timestamps: true });
 
 // ── Indexes ──────────────────────────────────────────────────────────────────
 customerSchema.index({ phone: 1 }, { unique: true });
@@ -77,11 +86,10 @@ customerSchema.index({ type: 1, isActive: 1 });
 customerSchema.index({ name: 'text', companyName: 'text' });
 
 // ── Pre-save: B2B must have companyName ──────────────────────────────────────
-customerSchema.pre('save', function (next) {
+customerSchema.pre('save', async function () {
   if (this.type === 'B2B' && !this.companyName) {
-    return next(new Error('Company name is required for B2B customers.'));
+    throw new Error('Company name is required for B2B customers.');
   }
-  next();
 });
 
 module.exports = mongoose.model('Customer', customerSchema);

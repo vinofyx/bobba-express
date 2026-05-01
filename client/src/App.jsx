@@ -1,3 +1,4 @@
+import { Component } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Provider, useSelector } from 'react-redux'
 import store from './store'
@@ -12,27 +13,56 @@ import AgentPage     from './pages/AgentPage'
 import TrackingPage  from './pages/TrackingPage'
 import UsersPage     from './pages/UsersPage'
 
-function PrivateRoute({ children }) {
-  const token = useSelector((s) => s.auth.token)
-  return token ? children : <Navigate to="/login" replace />
+// ── Error Boundary — prevents blank page on uncaught render errors ────────────
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'system-ui', background: '#f8fafc' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '40px 48px', boxShadow: '0 4px 24px rgba(0,0,0,.1)', textAlign: 'center', maxWidth: 420 }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+            <h2 style={{ color: '#0f172a', margin: '0 0 8px', fontSize: 20, fontWeight: 800 }}>Something went wrong</h2>
+            <p style={{ color: '#64748b', fontSize: 14, margin: '0 0 24px' }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
+            <button
+              onClick={() => { window.localStorage.removeItem('token'); window.localStorage.removeItem('user'); window.location.href = '/login'; }}
+              style={{ padding: '10px 24px', border: 'none', borderRadius: 10, background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+            >
+              Clear Session & Go to Login
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
 }
 
+// ── Route guards ──────────────────────────────────────────────────────────────
 function PublicRoute({ children }) {
-  const token = useSelector((s) => s.auth.token)
-  return token ? <Navigate to="/" replace /> : children
+  const { token, user } = useSelector((s) => s.auth)
+  // Only redirect to app if BOTH token and user are present
+  return (token && user) ? <Navigate to="/" replace /> : children
 }
 
 function DefaultRedirect() {
-  const user = useSelector((s) => s.auth.user)
-  return <Navigate to={user?.role === 'agent' ? '/agent' : '/dashboard'} replace />
+  const { token, user } = useSelector((s) => s.auth)
+  if (!token || !user) return <Navigate to="/login" replace />
+  return <Navigate to={user.role === 'agent' ? '/agent' : '/dashboard'} replace />
 }
 
-// Phase 12: Role-gated route — redirects if user lacks required role
+// Role-gated route — if user or token is missing, always go to login (prevents redirect loop)
 function RoleRoute({ roles, children }) {
   const { token, user } = useSelector((s) => s.auth)
-  if (!token) return <Navigate to="/login" replace />
-  if (!roles.includes(user?.role))
-    return <Navigate to={user?.role === 'agent' ? '/agent' : '/dashboard'} replace />
+  if (!token || !user) return <Navigate to="/login" replace />
+  if (!roles.includes(user.role))
+    return <Navigate to={user.role === 'agent' ? '/agent' : '/dashboard'} replace />
   return children
 }
 
@@ -80,8 +110,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <AppRoutes />
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <AppRoutes />
+      </Provider>
+    </ErrorBoundary>
   )
 }

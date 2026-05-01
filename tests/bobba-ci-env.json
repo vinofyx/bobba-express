@@ -1,0 +1,55 @@
+{
+	"id": "bobba-express-ci-environment",
+	"name": "BobbaExpress CI Environment",
+	"values": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000/api",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "TOKEN",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "CUSTOMER_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PICKUP_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PARCEL_1",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PARCEL_2",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PARCEL_3",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SHIPMENT_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment"
+}

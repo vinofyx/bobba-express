@@ -46,15 +46,43 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      return res.status(400).json({ success: false, message: 'email and password are required.' });
+      return res.status(400).json({ success: false, message: 'Email and password are required.' });
 
-    const user = await User.findOne({ email }).select('+password +refreshToken');
+    const user = await User.findOne({ email }).select('+password +refreshToken +loginAttempts +lockUntil');
     if (!user || !user.isActive)
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+
+    // Check if account is locked
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const lockTimeRemaining = Math.ceil((user.lockUntil - Date.now()) / 1000 / 60);
+      return res.status(423).json({ 
+        success: false, 
+        message: `Account locked. Try again in ${lockTimeRemaining} minutes.` 
+      });
+    }
 
     const ok = await user.comparePassword(password);
-    if (!ok)
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+    if (!ok) {
+      // Increment login attempts
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      
+      // Lock account after 5 failed attempts for 30 minutes
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = Date.now() + 30 * 60 * 1000; // 30 minutes
+        await user.save();
+        return res.status(423).json({ 
+          success: false, 
+          message: 'Account locked due to multiple failed attempts. Try again in 30 minutes.' 
+        });
+      }
+      
+      await user.save();
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    }
+
+    // Reset login attempts on successful login
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
 
     const accessToken  = sign(user._id, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN || '15m');
     const refreshToken = sign(user._id, process.env.JWT_REFRESH_SECRET, process.env.JWT_REFRESH_EXPIRES_IN || '7d');
@@ -64,10 +92,11 @@ const login = async (req, res) => {
     await user.save();
     setRefreshCookie(res, refreshToken);
 
-    const { password: _, refreshToken: __, ...safe } = user.toObject();
+    const { password: _, refreshToken: __, loginAttempts: ___, lockUntil: ____, ...safe } = user.toObject();
     return res.json({ success: true, message: 'Login successful.', data: { user: safe, accessToken } });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('[login] Error:', err.message);
+    return res.status(500).json({ success: false, message: err.message || 'Login failed. Please try again.' });
   }
 };
 
