@@ -101,3 +101,6 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Claude AI worktrees
+.claude/
