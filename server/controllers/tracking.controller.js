@@ -5,18 +5,30 @@ const Parcel      = require('../models/parcel.model');
 const getTracking = async (req, res) => {
   try {
     const { trackingId } = req.params;
-    
+
     // Validate tracking ID
     if (!trackingId || trackingId.trim() === '') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Enter tracking number' 
+      return res.status(400).json({
+        success: false,
+        message: 'Tracking ID is required.',
+        usage: 'GET /api/tracking/BE-XXXXXX'
+      });
+    }
+
+    // Detect placeholder / example values used literally
+    const looksLikePlaceholder = /^:|\{|\}|trackingId|tracking_id|<|>/i.test(trackingId.trim());
+    if (looksLikePlaceholder) {
+      return res.status(400).json({
+        success: false,
+        message: 'That looks like a placeholder, not a real tracking ID.',
+        example: 'GET /api/tracking/BE-123456',
+        tip: 'Replace :trackingId with an actual tracking number like BE-ABC123',
       });
     }
 
     // Normalize tracking ID (handle BE format)
     const normalizedTrackingId = trackingId.trim().toUpperCase();
-    
+
     const parcel = await Parcel.findOne({ trackingId: normalizedTrackingId })
       .populate('customer', 'name phone email')
       .populate('sender', 'name phone')
@@ -214,11 +226,21 @@ const downloadTrackingPDF = async (req, res) => {
     const { trackingId } = req.params;
     
     if (!trackingId || trackingId.trim() === '') {
-      return res.status(400).json({ success: false, message: 'Enter tracking number' });
+      return res.status(400).json({ success: false, message: 'Tracking ID is required.', usage: 'GET /api/tracking/BE-XXXXXX/download' });
+    }
+
+    const looksLikePlaceholder = /^:|\{|\}|trackingId|tracking_id|<|>/i.test(trackingId.trim());
+    if (looksLikePlaceholder) {
+      return res.status(400).json({
+        success: false,
+        message: 'That looks like a placeholder, not a real tracking ID.',
+        example: 'GET /api/tracking/BE-123456/download',
+        tip: 'Replace :trackingId with an actual tracking number like BE-ABC123',
+      });
     }
 
     const normalizedTrackingId = trackingId.trim().toUpperCase();
-    
+
     const parcel = await Parcel.findOne({ trackingId: normalizedTrackingId })
       .populate('customer', 'name phone email')
       .populate('sender', 'name phone')

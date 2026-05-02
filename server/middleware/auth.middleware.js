@@ -7,7 +7,12 @@ const authenticate = async (req, res, next) => {
     console.log('🔐 Auth middleware called');
     const header = req.headers.authorization;
     if (!header?.startsWith('Bearer '))
-      return res.status(401).json({ success: false, message: 'Authentication token missing or malformed.' });
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication token missing or malformed.',
+        fix: 'Login first → POST /api/auth/login  { email, password }  — then add the returned token as:  Authorization: Bearer <token>',
+        frontend: 'http://localhost:8080/login',
+      });
 
     const token = header.split(' ')[1];
     let decoded;
