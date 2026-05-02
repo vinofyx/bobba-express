@@ -97,25 +97,17 @@ app.get("/api/",       (_, res) => healthPayload(res));
 app.get("/api/health", (_, res) => healthPayload(res));
 app.get("/api/test",   (_, res) => res.json({ success: true, message: "API test OK", timestamp: new Date().toISOString() }));
 
-// ── Auth root + sub-route hints (GET on any /api/auth/* path) ────────────────
-const authHint = (_, res) => res.json({
-  success: false,
-  message: "Auth endpoints require POST — you sent GET (browser navigation).",
-  endpoints: {
-    login:    "POST /api/auth/login    — { email, password }",
-    register: "POST /api/auth/register — { name, email, password, role }",
-    me:       "GET  /api/auth/me       — requires Authorization: Bearer <token>",
-    refresh:  "POST /api/auth/refresh  — uses httpOnly refresh cookie",
-    logout:   "POST /api/auth/logout   — requires Authorization: Bearer <token>",
-  },
-  tip: "Use the frontend at http://localhost:8080 or a REST client (Postman/Thunder)",
-});
+// ── Auth GET → redirect to frontend ──────────────────────────────────────────
+// Browser navigation hits these with GET; redirect to the React UI instead.
+const FRONTEND = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',')[0].trim()
+  : 'http://localhost:8080';
 
-app.get("/api/auth",          authHint);
-app.get("/api/auth/login",    authHint);
-app.get("/api/auth/register", authHint);
-app.get("/api/auth/logout",   authHint);
-app.get("/api/auth/refresh",  authHint);
+app.get("/api/auth/register", (_, res) => res.redirect(`${FRONTEND}/register`));
+app.get("/api/auth/login",    (_, res) => res.redirect(`${FRONTEND}/login`));
+app.get("/api/auth/logout",   (_, res) => res.redirect(`${FRONTEND}/login`));
+app.get("/api/auth/refresh",  (_, res) => res.redirect(`${FRONTEND}/login`));
+app.get("/api/auth",          (_, res) => res.redirect(`${FRONTEND}/login`));
 
 // ── Browser-friendly hints for protected GET endpoints ────────────────────────
 // When accessed from browser (no token), shows info instead of 401.
