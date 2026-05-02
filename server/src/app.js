@@ -18,14 +18,27 @@ connectDB();
 const app = express();
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
+// Support comma-separated CLIENT_URL for multiple origins (e.g. Vercel preview + prod)
+const extraOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
   "http://localhost:8080",
   "http://localhost:8081",
   "http://localhost:5173",
-  process.env.CLIENT_URL,
+  ...extraOrigins,
 ].filter(Boolean);
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow non-browser requests (curl, Postman, server-to-server) and whitelisted origins
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

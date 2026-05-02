@@ -5,11 +5,12 @@ const User   = require('../models/User');
 const sign = (id, secret, expiresIn) => jwt.sign({ id }, secret, { expiresIn });
 
 const setRefreshCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure:   isProd,           // HTTPS only in production
+    sameSite: isProd ? 'none' : 'strict', // 'none' required for cross-origin (Vercel → backend)
+    maxAge:   7 * 24 * 60 * 60 * 1000,
   });
 };
 
