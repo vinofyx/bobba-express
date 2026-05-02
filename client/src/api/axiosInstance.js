@@ -2,13 +2,14 @@ import axios from 'axios';
 import store from '../store/index.js';
 import { logout, refreshTokenSuccess } from '../store/slices/authSlice.js';
 
-// ✅ IMPORTANT: Always use deployed backend URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+// Base URL: full backend host (no /api suffix — paths below carry /api/ themselves)
+// Dev:    VITE_API_BASE_URL=http://localhost:5000  → direct to local server
+// Prod:   VITE_API_BASE_URL=https://your-api.vercel.app → deployed backend
+// Vercel: leave VITE_API_BASE_URL empty → relative /api/* paths hit Vercel rewrite
 const axiosInstance = axios.create({
-  baseURL: BASE_URL, // ❗ NO fallback to '/api'
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 15000,
-  withCredentials: true,
+  withCredentials: true, // Important for httpOnly cookies
   headers: {
     'Content-Type': 'application/json',
   },
@@ -38,9 +39,9 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // ✅ Use BASE_URL directly
+        // Use axiosInstance baseURL with full API path
         const response = await axios.post(
-          `${BASE_URL}/auth/refresh`,
+          `${axiosInstance.defaults.baseURL}/api/auth/refresh`,
           {},
           { withCredentials: true }
         );

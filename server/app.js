@@ -13,7 +13,12 @@ const shipmentRoutes = require("./routes/shipment.routes");
 const trackingRoutes  = require("./routes/tracking.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 
-connectDB();
+// Connect to MongoDB — catch rejection so Node.js doesn't crash if URI is missing.
+// Individual requests will still fail gracefully if DB is not available.
+connectDB().catch((err) => {
+  console.error('[DB] Startup connection failed:', err.message);
+  console.error('[DB] Set MONGODB_URI in your Render/production environment variables.');
+});
 
 const app = express();
 
