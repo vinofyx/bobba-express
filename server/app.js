@@ -4,14 +4,14 @@ const cookieParser  = require("cookie-parser");
 const connectDB     = require("./config/db");
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-const authRoutes     = require("../routes/auth.routes");
-const userRoutes     = require("../routes/user.routes");
-const customerRoutes = require("../routes/customer.routes");
-const pickupRoutes   = require("../routes/pickup.routes");
-const parcelRoutes   = require("../routes/parcel.routes");
-const shipmentRoutes = require("../routes/shipment.routes");
-const trackingRoutes  = require("../routes/tracking.routes");
-const dashboardRoutes = require("../routes/dashboard.routes");
+const authRoutes     = require("./routes/auth.routes");
+const userRoutes     = require("./routes/user.routes");
+const customerRoutes = require("./routes/customer.routes");
+const pickupRoutes   = require("./routes/pickup.routes");
+const parcelRoutes   = require("./routes/parcel.routes");
+const shipmentRoutes = require("./routes/shipment.routes");
+const trackingRoutes  = require("./routes/tracking.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
 
 connectDB();
 

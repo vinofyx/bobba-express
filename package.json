@@ -1,40 +1,19 @@
 {
-  "name": "bobba-express",
+  "name": "bobba-express-api",
   "version": "1.0.0",
-  "description": "Bobba Express Monorepo",
-  "private": true,
+  "main": "server/server.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:client": "cd client && npm run dev",
-    "dev:server": "cd server && npm run dev",
-    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "start": "node server/server.js",
+    "dev": "cd server && npm run dev",
     "build": "cd client && npm run build",
-    "start": "cd server && npm start",
-    "db:seed": "cd server && node src/scripts/seed.js",
-    "db:reset": "cd server && node src/scripts/reset.js",
-    "test:setup": "npm run db:reset && npm run db:seed",
-    "test:env": "cd server && node src/scripts/test-env-setup.js",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:codegen": "playwright codegen",
-    "test:e2e:report": "playwright show-report",
-    "test:cypress": "cypress run",
-    "test:cypress:open": "cypress open",
-    "test:cypress:headed": "cypress run --headed",
-    "test:cypress:chrome": "cypress run --browser chrome",
-    "test:cypress:firefox": "cypress run --browser firefox",
-    "test:cypress:edge": "cypress run --browser edge",
-    "test:api": "newman run bobba-api-tests.json --environment bobba-dev-env.json",
-    "test:api:report": "newman run bobba-api-tests.json --environment bobba-dev-env.json --reporters htmlextra --reporter-htmlextra-export ./reports/api-test-report.html",
-    "test:api:ci": "newman run bobba-api-tests.json --environment bobba-dev-env.json --bail --reporters junit,htmlextra --reporter-junit-export ./reports/api-test-results.xml --reporter-htmlextra-export ./reports/api-test-report.html",
-    "test:api:performance": "newman run bobba-api-tests.json --environment bobba-dev-env.json --iteration-count 10 --reporters csv --reporter-csv-export ./reports/performance-results.csv"
+    "install:all": "npm install && cd client && npm install && cd server && npm install"
   },
-  "devDependencies": {
-    "@playwright/test": "^1.59.1",
-    "concurrently": "^8.2.2",
-    "dotenv": "^17.4.2"
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.0",
+    "mongoose": "^7.0.0"
   },
   "workspaces": [
     "client",
