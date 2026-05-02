@@ -97,18 +97,25 @@ app.get("/api/",       (_, res) => healthPayload(res));
 app.get("/api/health", (_, res) => healthPayload(res));
 app.get("/api/test",   (_, res) => res.json({ success: true, message: "API test OK", timestamp: new Date().toISOString() }));
 
-// ── Auth root hint ────────────────────────────────────────────────────────────
-app.get("/api/auth", (_, res) => res.json({
-  success: true,
-  message: "Auth endpoints — use POST with JSON body",
+// ── Auth root + sub-route hints (GET on any /api/auth/* path) ────────────────
+const authHint = (_, res) => res.json({
+  success: false,
+  message: "Auth endpoints require POST — you sent GET (browser navigation).",
   endpoints: {
     login:    "POST /api/auth/login    — { email, password }",
     register: "POST /api/auth/register — { name, email, password, role }",
-    me:       "GET  /api/auth/me       — requires Bearer token",
+    me:       "GET  /api/auth/me       — requires Authorization: Bearer <token>",
     refresh:  "POST /api/auth/refresh  — uses httpOnly refresh cookie",
-    logout:   "POST /api/auth/logout   — requires Bearer token",
+    logout:   "POST /api/auth/logout   — requires Authorization: Bearer <token>",
   },
-}));
+  tip: "Use the frontend at http://localhost:8080 or a REST client (Postman/Thunder)",
+});
+
+app.get("/api/auth",          authHint);
+app.get("/api/auth/login",    authHint);
+app.get("/api/auth/register", authHint);
+app.get("/api/auth/logout",   authHint);
+app.get("/api/auth/refresh",  authHint);
 
 // ── Browser-friendly hints for protected GET endpoints ────────────────────────
 // When accessed from browser (no token), shows info instead of 401.
@@ -176,7 +183,13 @@ app.use("/api/dashboard", dashboardRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) =>
-  res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.originalUrl}` })
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.url}`,
+    tip: req.url !== req.originalUrl
+      ? `(original request was ${req.method} ${req.originalUrl})`
+      : undefined,
+  })
 );
 
 // ── Global error handler ──────────────────────────────────────────────────────
