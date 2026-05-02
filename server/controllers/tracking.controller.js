@@ -295,12 +295,20 @@ const downloadTrackingPDF = async (req, res) => {
 // POST /api/tracking/:trackingId/subscribe   — Subscribe to tracking updates
 const subscribeToTracking = async (req, res) => {
   try {
-    const { trackingId, email } = req.body;
-    
+    // trackingId comes from the URL param, email comes from the body
+    const trackingId = req.params.trackingId || req.body.trackingId;
+    const { email }  = req.body;
+
     if (!trackingId || !email) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Tracking ID and email are required for subscription.' 
+      return res.status(400).json({
+        success: false,
+        message: !trackingId
+          ? 'Tracking ID is required. Provide it in the URL: POST /api/tracking/BE-123456/subscribe'
+          : 'Email is required in the request body: { "email": "you@example.com" }',
+        example: {
+          url:  'POST /api/tracking/BE-123456/subscribe',
+          body: { email: 'you@example.com' },
+        },
       });
     }
 
