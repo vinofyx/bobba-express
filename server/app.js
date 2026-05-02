@@ -186,8 +186,16 @@ app.use((req, res) =>
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
+  // Invalid JSON body (e.g. user pasted "Header: Authorization: Bearer..." in Body tab)
+  if (err.type === 'entity.parse.failed' || err.status === 400) {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body contains invalid JSON.',
+      tip: 'The Authorization token belongs in the HEADERS tab (not the Body). Body should be valid JSON like {"email":"x","password":"y"} or empty {}.',
+    });
+  }
   console.error(err.stack);
-  res.status(500).json({ success: false, message: err.message || "Unexpected server error." });
+  res.status(500).json({ success: false, message: err.message || 'Unexpected server error.' });
 });
 
 module.exports = app;
