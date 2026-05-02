@@ -48,12 +48,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// ── /api/v1/* → /api/* rewrite  (must be FIRST so all later routes see /api/*) ─
+// ── Path normalisation (runs before all route handlers) ──────────────────────
+// 1. /api/v1/* → /api/*  (legacy alias)
+// 2. /<resource>/* → /api/<resource>/*  (missing /api prefix — common mistake)
+const API_RESOURCES = ['auth', 'customers', 'pickups', 'parcels', 'shipments', 'tracking', 'dashboard', 'users'];
 app.use((req, _res, next) => {
+  // Strip legacy /api/v1 prefix
   if (req.path.startsWith('/api/v1/')) {
     req.url = '/api/' + req.url.slice('/api/v1/'.length);
-  } else if (req.path === '/api/v1') {
+    return next();
+  }
+  if (req.path === '/api/v1') {
     req.url = '/api';
+    return next();
+  }
+  // Rewrite bare resource paths → /api/<resource>
+  // e.g. /auth/login → /api/auth/login
+  const firstSegment = req.path.split('/')[1];
+  if (firstSegment && API_RESOURCES.includes(firstSegment)) {
+    req.url = '/api' + req.url;
   }
   next();
 });
