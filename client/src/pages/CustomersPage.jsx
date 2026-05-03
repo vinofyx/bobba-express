@@ -73,12 +73,17 @@ export default function CustomersPage() {
       }
       closeModal(); fetchCustomers()
     } catch (err) {
-      // Show specific field errors from Joi validation (422) or fallback message
       const data = err?.response?.data
+      const status = err?.response?.status
+      console.error('[Customer] Save failed:', status, data, err?.message)
       if (data?.data?.errors?.length) {
         setError(data.data.errors.join(' • '))
+      } else if (data?.message) {
+        setError(`${data.message}${status ? ` (${status})` : ''}`)
+      } else if (err?.message) {
+        setError(`Network error: ${err.message}`)
       } else {
-        setError(data?.message || 'Failed to save customer.')
+        setError('Failed to save customer.')
       }
     } finally { setSaving(false) }
   }
