@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../store/slices/authSlice'
+import { logoutUser } from '../store/actions/authActions'
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: '▦', roles: ['admin','staff'] },
@@ -17,9 +17,16 @@ export default function Layout() {
   const navigate = useNavigate()
   const user     = useSelector((s) => s.auth.user)
 
-  const handleLogout = () => { dispatch(logout()); navigate('/login') }
+  const handleLogout = async () => {
+    await dispatch(logoutUser()) // calls POST /api/auth/logout + clears Redux + localStorage
+    navigate('/login')
+  }
 
-  const ROLE_COLORS = { admin: { bg: '#172554', color: '#60a5fa' }, staff: { bg: '#1e3a5f', color: '#38bdf8' }, agent: { bg: '#14532d', color: '#4ade80' } }
+  const ROLE_COLORS = {
+    admin: { bg: '#172554', color: '#60a5fa' },
+    staff: { bg: '#1e3a5f', color: '#38bdf8' },
+    agent: { bg: '#14532d', color: '#4ade80' },
+  }
   const rc = ROLE_COLORS[user?.role] || ROLE_COLORS.staff
 
   return (
@@ -62,7 +69,8 @@ export default function Layout() {
         <div style={{ padding: '16px 20px', borderTop: '1px solid #1e293b' }}>
           <div style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{user?.name || 'User'}</div>
           <div style={{ display: 'inline-block', marginBottom: 12, padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: rc.bg, color: rc.color, textTransform: 'capitalize' }}>{user?.role}</div>
-          <button onClick={handleLogout} style={{ width: '100%', padding: '8px 0', border: 'none', borderRadius: 8, background: '#1e293b', color: '#94a3b8', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
+          <button onClick={handleLogout}
+            style={{ width: '100%', padding: '8px 0', border: 'none', borderRadius: 8, background: '#1e293b', color: '#94a3b8', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
             Sign out
           </button>
         </div>

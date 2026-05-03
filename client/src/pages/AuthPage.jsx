@@ -10,31 +10,52 @@ export default function AuthPage() {
   const [mode, setMode] = useState("login"); // "login" | "register"
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "staff" });
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); setLoading(true);
+    setError(""); setSuccess(""); setLoading(true);
     try {
       if (mode === "login") {
+        // authAPI.login returns: { success, message, data: { user, accessToken } }
         const res = await authAPI.login({ email: form.email, password: form.password });
-        const { user, accessToken } = res.data;
-        dispatch(loginSuccess({ user, token: accessToken }));
-        navigate("/dashboard");
-      } else {
-        if (!form.name || form.password.length < 8) {
-          setError("Name is required and password must be at least 8 characters.");
+        const user        = res?.data?.user;
+        const accessToken = res?.data?.accessToken;
+
+        if (!user || !accessToken) {
+          setError("Login failed: invalid server response. Please try again.");
           return;
         }
-        await authAPI.register({ name: form.name, email: form.email, password: form.password, role: form.role });
+
+        dispatch(loginSuccess({ user, token: accessToken }));
+        navigate("/dashboard");
+
+      } else {
+        // Validate before sending
+        if (!form.name.trim()) { setError("Full name is required."); return; }
+        if (form.password.length < 8) { setError("Password must be at least 8 characters."); return; }
+
+        // authAPI.register returns: { success, message, data: { user, accessToken } }
+        await authAPI.register({
+          name:     form.name.trim(),
+          email:    form.email.trim(),
+          password: form.password,
+          role:     form.role,
+        });
+
+        setSuccess("Account created! You can now sign in.");
         setMode("login");
-        setError("");
-        setForm((p) => ({ ...p, name: "" }));
+        setForm((p) => ({ ...p, name: "", password: "" }));
       }
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Something went wrong.");
+      const msg = err?.response?.data?.message
+        || err?.response?.data?.errors?.join(", ")
+        || err?.message
+        || "Something went wrong. Is the server running on port 5000?";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -49,10 +70,11 @@ export default function AuthPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", background: "linear-gradient(135deg,#0a0f1e 0%,#1e1b4b 50%,#0a0f1e 100%)" }}>
-      {/* Left Panel */}
+
+      {/* ── Left Panel ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 80px", color: "#fff" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 48 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800 }}>B</div>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "#fff" }}>B</div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800 }}>BobbaExpress</div>
             <div style={{ fontSize: 11, color: "#94a3b8" }}>Logistics Platform</div>
@@ -74,18 +96,24 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* Right Panel — Auth Card */}
+      {/* ── Right Panel — Auth Card ── */}
       <div style={{ width: 480, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
         <div style={{ background: "#fff", borderRadius: 24, padding: "40px 44px", width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,.4)" }}>
+
           {/* Tabs */}
           <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 12, padding: 4, marginBottom: 32 }}>
             {["login","register"].map((m) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); }}
-                style={{ flex: 1, padding: "9px 0", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "inherit", textTransform: "capitalize",
+              <button key={m} onClick={() => { setMode(m); setError(""); setSuccess(""); }}
+                style={{
+                  flex: 1, padding: "9px 0", borderRadius: 9, border: "none",
+                  cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                  textTransform: "capitalize",
                   background: mode === m ? "#fff" : "transparent",
                   color:      mode === m ? "#111" : "#6b7280",
                   boxShadow:  mode === m ? "0 1px 6px rgba(0,0,0,.12)" : "none",
-                }}>{m === "login" ? "Sign In" : "Sign Up"}</button>
+                }}>
+                {m === "login" ? "Sign In" : "Sign Up"}
+              </button>
             ))}
           </div>
 
@@ -96,13 +124,22 @@ export default function AuthPage() {
             {mode === "login" ? "Sign in to your account to continue" : "Register a new staff or agent account"}
           </p>
 
+          {/* Error banner */}
           {error && (
             <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "11px 14px", marginBottom: 20, fontSize: 13, color: "#b91c1c" }}>
               {error}
             </div>
           )}
 
+          {/* Success banner */}
+          {success && (
+            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "11px 14px", marginBottom: 20, fontSize: 13, color: "#15803d" }}>
+              {success}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
             {mode === "register" && (
               <div>
                 <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Full Name *</label>
@@ -132,19 +169,25 @@ export default function AuthPage() {
             )}
 
             <button type="submit" disabled={loading}
-              style={{ marginTop: 8, padding: "13px", border: "none", borderRadius: 12,
+              style={{
+                marginTop: 8, padding: "13px", border: "none", borderRadius: 12,
                 background: loading ? "#a5b4fc" : "linear-gradient(135deg,#4f46e5,#6366f1)",
-                color: "#fff", fontWeight: 700, fontSize: 15, cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 14px rgba(79,70,229,.4)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit",
+                color: "#fff", fontWeight: 700, fontSize: 15,
+                cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: "0 4px 14px rgba(79,70,229,.4)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                fontFamily: "inherit",
               }}>
               {loading
                 ? <><span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .7s linear infinite" }} /> Please wait…</>
                 : mode === "login" ? "Sign In" : "Create Account"}
             </button>
+
           </form>
         </div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 }
