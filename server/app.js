@@ -97,17 +97,30 @@ app.get("/api/",       (_, res) => healthPayload(res));
 app.get("/api/health", (_, res) => healthPayload(res));
 app.get("/api/test",   (_, res) => res.json({ success: true, message: "API test OK", timestamp: new Date().toISOString() }));
 
-// ── Auth GET → redirect to frontend ──────────────────────────────────────────
-// Browser navigation hits these with GET; redirect to the React UI instead.
-const FRONTEND = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',')[0].trim()
-  : 'http://localhost:8080';
+// ── Auth GET → JSON usage hints (never redirect — breaks API clients) ────────
+const authInfo = (method, body) => (_, res) => res.status(405).json({
+  success: false,
+  message: `Use ${method} to call this endpoint, not GET.`,
+  method,
+  body: body || null,
+  example: `In Thunder Client / Postman → set method to ${method}, add Body → JSON`,
+});
 
-app.get("/api/auth/register", (_, res) => res.redirect(`${FRONTEND}/register`));
-app.get("/api/auth/login",    (_, res) => res.redirect(`${FRONTEND}/login`));
-app.get("/api/auth/logout",   (_, res) => res.redirect(`${FRONTEND}/login`));
-app.get("/api/auth/refresh",  (_, res) => res.redirect(`${FRONTEND}/login`));
-app.get("/api/auth",          (_, res) => res.redirect(`${FRONTEND}/login`));
+app.get("/api/auth/register", authInfo('POST', { name: 'John Doe', email: 'you@example.com', password: 'min8chars', role: 'staff' }));
+app.get("/api/auth/login",    authInfo('POST', { email: 'you@example.com', password: 'yourpassword' }));
+app.get("/api/auth/logout",   authInfo('POST', 'No body needed — add Authorization: Bearer <token> in Headers'));
+app.get("/api/auth/refresh",  authInfo('POST', 'No body needed — uses httpOnly refresh cookie'));
+app.get("/api/auth", (_, res) => res.json({
+  success: true,
+  message: 'BobbaExpress Auth API',
+  endpoints: {
+    'POST /api/auth/register': { body: { name: 'string', email: 'string', password: 'min 8 chars', role: 'admin|staff|agent' } },
+    'POST /api/auth/login':    { body: { email: 'string', password: 'string' } },
+    'GET  /api/auth/me':       { headers: { Authorization: 'Bearer <token>' } },
+    'POST /api/auth/refresh':  { note: 'uses httpOnly refresh cookie, no body needed' },
+    'POST /api/auth/logout':   { headers: { Authorization: 'Bearer <token>' } },
+  },
+}));
 
 // ── Browser-friendly hints for protected GET endpoints ────────────────────────
 // When accessed from browser (no token), shows info instead of 401.
