@@ -87,6 +87,29 @@ app.get("/api/auth/register", authHint({ name: "John", email: "you@example.com",
 app.get("/api/auth/logout",   authHint(null));
 app.get("/api/auth/refresh",  authHint(null));
 
+// ── SMS Test Route ────────────────────────────────────────────────────────────
+app.get("/api/sms-test/:phone", async (req, res) => {
+  const axios = require("axios");
+  const key   = process.env.FAST2SMS_API_KEY;
+  const phone = String(req.params.phone).replace(/^\+?91/, "").replace(/\D/g, "").slice(-10);
+
+  if (!key || key.startsWith("your-") || key.length < 10)
+    return res.json({ success: false, mode: "DEV_MODE", problem: "FAST2SMS_API_KEY not set or placeholder in server/.env" });
+  if (phone.length !== 10)
+    return res.json({ success: false, problem: `Invalid phone: ${req.params.phone}. Must be 10 digits.` });
+
+  try {
+    const response = await axios.post(
+      "https://www.fast2sms.com/dev/bulkV2",
+      { route: "q", message: "BobbaExpress SMS test", language: "english", flash: 0, numbers: phone },
+      { headers: { authorization: key, "Content-Type": "application/json" }, timeout: 10000 }
+    );
+    return res.json({ success: response.data?.return === true, phone: `+91${phone}`, response: response.data });
+  } catch (err) {
+    return res.json({ success: false, problem: err.message, detail: err.response?.data });
+  }
+});
+
 // ── Protected GET hints (no token → show info instead of 401) ────────────────
 const protectedHint = (label) => (req, res, next) => {
   if (!req.headers.authorization) {
