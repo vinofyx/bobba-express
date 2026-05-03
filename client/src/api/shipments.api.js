@@ -1,15 +1,12 @@
 import axiosInstance from './axiosInstance.js';
 
 export const shipmentsAPI = {
-  getAll: (params = {}) => axiosInstance.get('/api/shipments', { params }),
-  getById: (id) => axiosInstance.get(`/api/shipments/${id}`),
-  create: (shipmentData) => axiosInstance.post('/api/shipments', shipmentData),
-  dispatch: (id, note) => axiosInstance.patch(`/api/shipments/${id}/dispatch`, { note }),
-  receive: (id, note) => axiosInstance.patch(`/api/shipments/${id}/receive`, { note }),
-  getByStatus: (status) => axiosInstance.get('/api/shipments', { params: { status } }),
-  getByVehicle: (vehicleNumber) => axiosInstance.get('/api/shipments', { params: { vehicleNumber } }),
-  getByDriver: (driverName) => axiosInstance.get('/api/shipments', { params: { driver: driverName } }),
-  getActive: () => axiosInstance.get('/api/shipments', { params: { status: ['Created', 'Dispatched', 'In Transit'] } }),
-  cancel: (id, reason) => axiosInstance.patch(`/api/shipments/${id}/cancel`, { reason }),
-  getHistory: (id) => axiosInstance.get(`/api/shipments/${id}/history`),
+  getAll:      (params = {}) => axiosInstance.get('/shipments', { params }),
+  getById:     (id)          => axiosInstance.get(`/shipments/${id}`),
+  create:      (data)        => axiosInstance.post('/shipments', data),
+  dispatch:    (id, note)    => axiosInstance.patch(`/shipments/${id}/dispatch`, { note }),
+  receive:     (id, note)    => axiosInstance.patch(`/shipments/${id}/receive`, { note }),
+  getByStatus: (status)      => axiosInstance.get('/shipments', { params: { status } }),
+  cancel:      (id, reason)  => axiosInstance.patch(`/shipments/${id}/cancel`, { reason }),
+  getHistory:  (id)          => axiosInstance.get(`/shipments/${id}/history`),
 };

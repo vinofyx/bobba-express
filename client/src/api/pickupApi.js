@@ -1,48 +1,13 @@
 import axiosInstance from './axiosInstance.js';
 
 export const pickupAPI = {
-  // Get all pickups
-  getAll: (params = {}) => {
-    return axiosInstance.get('/api/pickups', { params });
-  },
-
-  // Get pickup by ID
-  getById: (id) => {
-    return axiosInstance.get(`/api/pickups/${id}`);
-  },
-
-  // Create new pickup
-  create: (pickupData) => {
-    return axiosInstance.post('/api/pickups', pickupData);
-  },
-
-  // Update pickup
-  update: (id, pickupData) => {
-    return axiosInstance.put(`/api/pickups/${id}`, pickupData);
-  },
-
-  // Update pickup status
-  updateStatus: (id, statusData) => {
-    return axiosInstance.patch(`/api/pickups/${id}/status`, statusData);
-  },
-
-  // Get pickups by status
-  getByStatus: (status) => {
-    return axiosInstance.get('/api/pickups', { params: { status } });
-  },
-
-  // Get pickups by agent
-  getByAgent: (agentId) => {
-    return axiosInstance.get('/api/pickups', { params: { assignedAgent: agentId } });
-  },
-
-  // Assign agent to pickup
-  assignAgent: (id, agentId) => {
-    return axiosInstance.put(`/api/pickups/${id}/assign`, { agentId });
-  },
-
-  // Get only my pickups (agent view)
-  getMyPickups: () => {
-    return axiosInstance.get('/api/pickups', { params: { onlyMine: true } });
-  },
+  getAll:      (params = {}) => axiosInstance.get('/pickups', { params }),
+  getById:     (id)          => axiosInstance.get(`/pickups/${id}`),
+  create:      (data)        => axiosInstance.post('/pickups', data),
+  update:      (id, data)    => axiosInstance.put(`/pickups/${id}`, data),
+  updateStatus:(id, data)    => axiosInstance.patch(`/pickups/${id}/status`, data),
+  getByStatus: (status)      => axiosInstance.get('/pickups', { params: { status } }),
+  getByAgent:  (agentId)     => axiosInstance.get('/pickups', { params: { assignedAgent: agentId } }),
+  assignAgent: (id, agentId) => axiosInstance.put(`/pickups/${id}/assign`, { agentId }),
+  getMyPickups:()            => axiosInstance.get('/pickups', { params: { onlyMine: true } }),
 };
