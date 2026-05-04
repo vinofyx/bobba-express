@@ -1,0 +1,24 @@
+$kind: http-request
+name: Create User
+method: POST
+url: '{{baseUrl}}/api/users'
+description: Create a new user account. Admin only.
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Jane Agent",
+      "email": "jane.agent@bobbaexpress.com",
+      "password": "password123",
+      "role": "agent",
+      "phone": "9876543210"
+    }

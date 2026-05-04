@@ -1,0 +1,20 @@
+$kind: http-request
+name: Dispatch Shipment
+method: PATCH
+url: '{{baseUrl}}/api/shipments/{{shipmentId}}/dispatch'
+description: Mark a shipment as dispatched. Admin/staff only.
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "note": "Dispatched from Mumbai hub"
+    }

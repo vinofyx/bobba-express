@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get User
+method: GET
+url: '{{baseUrl}}/api/users/{{userId}}'
+description: Get a single user by ID. Admin/staff only.
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

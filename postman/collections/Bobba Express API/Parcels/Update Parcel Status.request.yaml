@@ -1,0 +1,28 @@
+$kind: http-request
+name: Update Parcel Status
+method: PATCH
+url: '{{baseUrl}}/api/parcels/{{parcelId}}/status'
+description: |-
+  Update the status of a parcel. Admin/staff/agent.
+  Valid statuses: In Pickup, At Center, In Transit, Out for Delivery, Delivered
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "Out for Delivery",
+      "location": "Delhi Hub",
+      "note": "Out for delivery",
+      "gps": {
+        "lat": 28.6139,
+        "lng": 77.2090
+      }
+    }

@@ -1,0 +1,22 @@
+$kind: http-request
+name: Update User
+method: PUT
+url: '{{baseUrl}}/api/users/{{userId}}'
+description: Update a user's name, role, or phone. Admin only.
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Jane Updated",
+      "role": "staff",
+      "phone": "9876543211"
+    }

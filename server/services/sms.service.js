@@ -1,215 +1,206 @@
 /**
- * SMS Service — Fast2SMS (India)
- * Docs: https://docs.fast2sms.com
- *
- * Setup:
- *   1. Sign up at fast2sms.com
- *   2. Get your API key: Dashboard → Dev API → API Key
- *   3. Add to server/.env:  FAST2SMS_API_KEY=<your_real_key>
- *
- * Dev mode (no key set or placeholder left):
- *   SMS is printed to console so you can verify the content without sending.
+ * 📩 SMS Service — Fast2SMS (India)
+ * Supports:
+ * - Core SMS sending
+ * - Tracking links
+ * - OTP
+ * - Pickup / Parcel / Shipment notifications
  */
-const axios = require('axios');
 
-// ── Core send ─────────────────────────────────────────────────────────────────
-const send = async (phone, message) => {
-  if (!phone || !message) return;
+const axios = require("axios");
 
-  const API_KEY = process.env.FAST2SMS_API_KEY || '';
+// ─────────────────────────────────────────────
+// 🔧 CORE SMS FUNCTION
+// ─────────────────────────────────────────────
+const sendSMS = async (phone, message) => {
+  if (!phone || !message) {
+    console.warn("[SMS] Missing phone or message");
+    return { success: false };
+  }
 
-  // Treat missing or unset placeholder keys as dev mode
-  const DEV_MODE = !API_KEY || API_KEY.startsWith('your-') || API_KEY.length < 10;
+  const API_KEY = process.env.FAST2SMS_API_KEY || "";
 
-  // Strip country code, keep last 10 digits (Indian mobile format)
-  const cleaned = String(phone).replace(/^\+?91/, '').replace(/\D/g, '').slice(-10);
+  const DEV_MODE =
+    !API_KEY || API_KEY.startsWith("your-") || API_KEY.length < 10;
+
+  const cleaned = String(phone)
+    .replace(/^\+?91/, "")
+    .replace(/\D/g, "")
+    .slice(-10);
+
   if (cleaned.length !== 10) {
-    console.warn(`[SMS] Skipped — invalid phone number: ${phone}`);
-    return;
+    console.warn("[SMS] Invalid phone:", phone);
+    return { success: false };
   }
 
+  // 🟡 DEV MODE
   if (DEV_MODE) {
-    console.log(`\n[SMS ⚠ DEV MODE — add a real FAST2SMS_API_KEY to .env to send real SMS]`);
-    console.log(`  To : +91${cleaned}`);
-    console.log(`  Msg: ${message}\n`);
-    return;
+    console.log("\n📩 [SMS DEV MODE]");
+    console.log("To:", `+91${cleaned}`);
+    console.log("Message:", message);
+    console.log("--------------------------\n");
+    return { success: true, mode: "DEV" };
   }
 
+  // 🟢 LIVE MODE
   try {
-    console.log(`[SMS] Sending to +91${cleaned}…`);
-
     const response = await axios.post(
-      'https://www.fast2sms.com/dev/bulkV2',
-      // authorization goes in HEADERS only — putting it in the body too causes rejection
+      "https://www.fast2sms.com/dev/bulkV2",
       {
-        route:    'q',       // Quick SMS — no DLT template registration needed
-        message:  message.slice(0, 459), // Fast2SMS max per segment × 3
-        language: 'english',
-        flash:    0,
-        numbers:  cleaned,
+        route: "q",
+        message: message.slice(0, 459),
+        language: "english",
+        numbers: cleaned,
       },
       {
         headers: {
           authorization: API_KEY,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        timeout: 12000,
+        timeout: 10000,
       }
     );
 
     if (response.data?.return === true) {
-      console.log(`[SMS] ✓ Sent to +91${cleaned}`);
+      console.log(`[SMS] ✅ Sent to +91${cleaned}`);
+      return { success: true };
     } else {
-      console.error(`[SMS] ✗ Fast2SMS rejected +91${cleaned}:`, JSON.stringify(response.data));
+      console.error("[SMS] ❌ Failed:", response.data);
+      return { success: false, error: response.data };
     }
   } catch (err) {
-    const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
-    console.error(`[SMS] ✗ Error for +91${cleaned}: ${detail}`);
+    console.error("[SMS] ❌ Error:", err.response?.data || err.message);
+    return { success: false };
   }
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const fmtDate = (d) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+// ─────────────────────────────────────────────
+// 🔗 TRACKING LINK
+// ─────────────────────────────────────────────
+const getTrackingLink = (trackingId) => {
+  const base = process.env.CLIENT_URL || "http://localhost:5173";
+  return `${base}/track/${trackingId}`;
+};
 
-// ── Trigger 1: Pickup Scheduled (→ customer) ─────────────────────────────────
+// ─────────────────────────────────────────────
+// 🔐 OTP FUNCTION
+// ─────────────────────────────────────────────
+const sendOTP = async (phone, otp) => {
+  return await sendSMS(phone, `🔐 Your OTP is ${otp}. Valid for 5 minutes.`);
+};
+
+// ─────────────────────────────────────────────
+// 📦 CUSTOMER
+// ─────────────────────────────────────────────
+const sendCustomerCreated = async (customer) => {
+  await sendSMS(
+    customer.phone,
+    `Hi ${customer.name}, welcome to BobbaExpress 🚀`
+  );
+};
+
+// ─────────────────────────────────────────────
+// 🚚 PICKUP
+// ─────────────────────────────────────────────
 const sendPickupScheduled = async (pickup) => {
-  const phone = pickup?.customer?.phone;
-  if (!phone) return;
-
-  const name = pickup.customer?.name || 'Customer';
-  const date = fmtDate(pickup.scheduledDate) || 'the scheduled date';
-  const time = pickup.pickupTime ? ` at ${pickup.pickupTime}` : '';
-  const type = pickup.deliveryType ? ` (${pickup.deliveryType})` : '';
-
-  await send(
-    phone,
-    `BobbaExpress: Hi ${name}, your pickup is scheduled for ${date}${time}${type}. Our agent will be assigned shortly. -BobbaExpress`
+  await sendSMS(
+    pickup?.customer?.phone,
+    `📦 Pickup scheduled on ${new Date(
+      pickup.scheduledDate
+    ).toDateString()}`
   );
 };
 
-// ── Trigger 2: Agent Assigned (→ agent) ──────────────────────────────────────
 const sendPickupAssigned = async (pickup) => {
-  const phone = pickup?.assignedAgent?.phone;
-  if (!phone) return;
-
-  const agentName    = pickup.assignedAgent?.name || 'Agent';
-  const customerName = pickup.customer?.name      || 'Customer';
-  const date         = fmtDate(pickup.scheduledDate) || 'the scheduled date';
-  const time         = pickup.pickupTime ? ` at ${pickup.pickupTime}` : '';
-
-  const addr = pickup.pickupAddress
-    ? [pickup.pickupAddress.line1, pickup.pickupAddress.city].filter(Boolean).join(', ')
-    : 'the pickup address';
-
-  await send(
-    phone,
-    `BobbaExpress: Hi ${agentName}, new pickup assigned! Customer: ${customerName}, Address: ${addr}, Date: ${date}${time}. Please confirm. -BobbaExpress`
+  await sendSMS(
+    pickup?.assignedAgent?.phone,
+    `🚚 Pickup assigned from ${pickup?.customer?.name}`
   );
 };
 
-// ── Trigger 3: Driver Assigned (→ customer) ───────────────────────────────────
 const sendDriverAssigned = async (pickup) => {
-  const phone = pickup?.customer?.phone;
-  if (!phone) return;
-
-  const name      = pickup.customer?.name      || 'Customer';
-  const agentName = pickup.assignedAgent?.name || 'our agent';
-  const date      = fmtDate(pickup.scheduledDate) || 'the scheduled date';
-  const time      = pickup.pickupTime ? ` at ${pickup.pickupTime}` : '';
-
-  await send(
-    phone,
-    `BobbaExpress: Hi ${name}, driver ${agentName} has been assigned for your pickup on ${date}${time}. Please keep your items ready. -BobbaExpress`
+  await sendSMS(
+    pickup?.customer?.phone,
+    `🚚 Driver assigned for your pickup`
   );
 };
 
-// ── Trigger 4: Pickup Completed (→ agent) ────────────────────────────────────
 const sendPickupCompleted = async (pickup) => {
-  const phone = pickup?.assignedAgent?.phone || pickup?.customer?.phone;
-  if (!phone) return;
-
-  const name  = pickup.customer?.name || 'Customer';
-  const count = pickup.completionProof?.actualCount ?? pickup.parcelCount ?? 1;
-
-  await send(
-    phone,
-    `BobbaExpress: Pickup ${pickup.pickupId} completed. ${count} parcel(s) collected from ${name}. Items are now at the warehouse. -BobbaExpress`
+  await sendSMS(
+    pickup?.assignedAgent?.phone,
+    `✅ Pickup completed`
   );
 };
 
-// ── Trigger 5: Pickup Completed (→ customer) ──────────────────────────────────
 const sendPickupCompletedCustomer = async (pickup) => {
-  const phone = pickup?.customer?.phone;
-  if (!phone) return;
-
-  const name      = pickup.customer?.name      || 'Customer';
-  const agentName = pickup.assignedAgent?.name || 'our agent';
-  const count     = pickup.completionProof?.actualCount ?? pickup.parcelCount ?? 1;
-
-  await send(
-    phone,
-    `BobbaExpress: Hi ${name}, your pickup (${pickup.pickupId}) is complete! ${agentName} collected ${count} parcel(s). Your items are on their way to the warehouse. -BobbaExpress`
+  await sendSMS(
+    pickup?.customer?.phone,
+    `✅ Your pickup is completed`
   );
 };
 
-// ── Trigger 6: Shipment Dispatched (→ driver/internal) ───────────────────────
-// parcelsWithCustomers is an optional array; shipment alone is enough for driver notify
-const sendShipmentDispatched = async (shipment, parcelsWithCustomers = []) => {
-  const origin = shipment.originHub || shipment.route?.origin?.city || '';
-  const dest   = shipment.destinationHub || shipment.route?.destination?.city || 'destination';
+// ─────────────────────────────────────────────
+// 📦 PARCEL
+// ─────────────────────────────────────────────
+const sendParcelCreated = async (parcel) => {
+  const link = getTrackingLink(parcel.trackingId);
 
-  // Notify each unique customer
-  const seen = new Set();
-  for (const parcel of parcelsWithCustomers) {
-    const phone = parcel?.customer?.phone;
-    if (!phone || seen.has(phone)) continue;
-    seen.add(phone);
-
-    const name = parcel.customer?.name || 'Customer';
-    await send(
-      phone,
-      `BobbaExpress: Hi ${name}, your parcel${parcel.trackingId ? ` (${parcel.trackingId})` : ''} has been dispatched${origin ? ` from ${origin}` : ''} to ${dest}. We will notify you on delivery. -BobbaExpress`
-    );
-  }
-};
-
-// ── Trigger 7: Shipment Created (→ customer per parcel) ──────────────────────
-const sendShipmentDispatchedCustomer = async (parcel, shipment) => {
-  const phone = parcel?.customer?.phone;
-  if (!phone) return;
-
-  const name   = parcel.customer?.name || 'Customer';
-  const origin = shipment.originHub || shipment.route?.origin?.city || '';
-  const dest   = shipment.destinationHub || shipment.route?.destination?.city || 'destination';
-
-  await send(
-    phone,
-    `BobbaExpress: Hi ${name}, your parcel ${parcel.trackingId} is in transit${origin ? ` from ${origin}` : ''} to ${dest}. Shipment ID: ${shipment.shipmentId}. -BobbaExpress`
+  await sendSMS(
+    parcel?.customer?.phone,
+    `📦 Parcel created. Track: ${link}`
   );
 };
 
-// ── Trigger 8: Parcel Delivered (→ customer) ──────────────────────────────────
 const sendParcelDelivered = async (parcel) => {
-  const phone = parcel?.customer?.phone;
-  if (!phone) return;
+  const link = getTrackingLink(parcel.trackingId);
 
-  const name = parcel.customer?.name || 'Customer';
-
-  await send(
-    phone,
-    `BobbaExpress: Hi ${name}, your parcel${parcel.trackingId ? ` (${parcel.trackingId})` : ''} has been delivered successfully. Thank you for choosing BobbaExpress! -BobbaExpress`
+  await sendSMS(
+    parcel?.customer?.phone,
+    `✅ Parcel delivered. Track: ${link}`
   );
 };
 
+// ─────────────────────────────────────────────
+// 🚛 SHIPMENT
+// ─────────────────────────────────────────────
+const sendShipmentDispatched = async (shipment) => {
+  await sendSMS(
+    shipment?.driver?.phone,
+    `🚛 Shipment ${shipment.shipmentId} dispatched`
+  );
+};
+
+const sendShipmentDispatchedCustomer = async (parcel) => {
+  const link = getTrackingLink(parcel.trackingId);
+
+  await sendSMS(
+    parcel?.customer?.phone,
+    `🚛 Your parcel is on the way. Track: ${link}`
+  );
+};
+
+// ─────────────────────────────────────────────
+// 📤 EXPORTS
+// ─────────────────────────────────────────────
 module.exports = {
-  send,
+  sendSMS,
+  sendOTP,
+
+  // Customer
+  sendCustomerCreated,
+
+  // Pickup
   sendPickupScheduled,
   sendPickupAssigned,
-  sendPickupCompleted,
   sendDriverAssigned,
+  sendPickupCompleted,
   sendPickupCompletedCustomer,
+
+  // Parcel
+  sendParcelCreated,
+  sendParcelDelivered,
+
+  // Shipment
   sendShipmentDispatched,
   sendShipmentDispatchedCustomer,
-  sendParcelDelivered,
 };

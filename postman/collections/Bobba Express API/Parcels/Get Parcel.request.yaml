@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get Parcel
+method: GET
+url: '{{baseUrl}}/api/parcels/{{parcelId}}'
+description: Get a single parcel by ID.
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

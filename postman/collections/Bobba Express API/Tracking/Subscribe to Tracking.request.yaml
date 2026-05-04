@@ -1,0 +1,15 @@
+$kind: http-request
+name: Subscribe to Tracking
+method: POST
+url: '{{baseUrl}}/api/tracking/{{trackingId}}/subscribe'
+description: Subscribe an email address to receive tracking updates for a parcel. Public endpoint.
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "customer@example.com"
+    }

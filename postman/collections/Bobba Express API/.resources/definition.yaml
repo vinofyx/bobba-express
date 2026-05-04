@@ -1,0 +1,39 @@
+$kind: collection
+name: Bobba Express API
+description: |-
+  Complete API collection for the Bobba Express courier management system.
+  
+  Base URL: {{baseUrl}} (default: http://localhost:5000)
+  
+  Authentication: Most endpoints require a Bearer token. Login first to get the accessToken, then set it as the {{authToken}} variable.
+  
+  Domains covered:
+  - Auth (register, login, me, refresh, logout)
+  - Users (CRUD + toggle active)
+  - Customers (CRUD)
+  - Pickups (create, list, get, assign, reassign, complete, update status)
+  - Parcels (create, list, get, update, update status, generate label)
+  - Shipments (create, list, get, dispatch, receive, mark delivered, manifest, drivers, agent deliveries)
+  - Tracking (get by tracking ID, download PDF, subscribe, add event)
+  - Dashboard (stats)
+  - Health (health check, API test)
+version: '1.0.0'
+variables:
+  - key: baseUrl
+    value: 'http://localhost:5000'
+  - key: authToken
+    value: ''
+  - key: customerId
+    value: ''
+  - key: pickupId
+    value: ''
+  - key: parcelId
+    value: ''
+  - key: shipmentId
+    value: ''
+  - key: trackingId
+    value: ''
+  - key: userId
+    value: ''
+  - key: agentId
+    value: ''

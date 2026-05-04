@@ -1,0 +1,20 @@
+$kind: http-request
+name: List Customers
+method: GET
+url: '{{baseUrl}}/api/customers'
+description: |-
+  List all active customers.
+  Query params: type (B2B|B2C), search (text search)
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+queryParams:
+  - key: type
+    value: B2C
+    disabled: true
+  - key: search
+    value: ''
+    disabled: true

@@ -1,0 +1,20 @@
+$kind: http-request
+name: List Parcels
+method: GET
+url: '{{baseUrl}}/api/parcels'
+description: |-
+  List all parcels.
+  Query params: status, assignedAgent (agent ID), onlyMine (true)
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+queryParams:
+  - key: status
+    value: 'At Center'
+    disabled: true
+  - key: onlyMine
+    value: 'true'
+    disabled: true

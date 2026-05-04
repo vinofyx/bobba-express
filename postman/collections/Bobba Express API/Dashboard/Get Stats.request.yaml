@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get Stats
+method: GET
+url: '{{baseUrl}}/api/dashboard/stats'
+description: Get dashboard statistics. Admin/staff only.
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

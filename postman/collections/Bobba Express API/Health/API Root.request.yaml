@@ -1,0 +1,6 @@
+$kind: http-request
+name: API Root
+method: GET
+url: '{{baseUrl}}/api'
+description: API root endpoint — returns basic API info.
+order: 2000

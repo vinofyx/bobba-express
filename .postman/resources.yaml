@@ -1,0 +1,8 @@
+# Use this workspace to collaborate
+workspace:
+  id: 61df1da1-9762-452c-8c1d-c6b9db094b68
+
+localResources:
+  collections:
+    - ..\bobba-api-tests.json
+    - ..\tests\bobba-api-tests.json

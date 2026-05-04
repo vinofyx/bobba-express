@@ -1,0 +1,20 @@
+$kind: http-request
+name: Assign Agent
+method: PUT
+url: '{{baseUrl}}/api/pickups/{{pickupId}}/assign'
+description: Assign an agent to a pickup. Admin/staff only.
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "agentId": "{{agentId}}"
+    }

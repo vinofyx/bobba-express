@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get Available Drivers
+method: GET
+url: '{{baseUrl}}/api/shipments/drivers'
+description: Get a list of available drivers (active agents).
+order: 8000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

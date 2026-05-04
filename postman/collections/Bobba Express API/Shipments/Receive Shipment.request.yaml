@@ -1,0 +1,20 @@
+$kind: http-request
+name: Receive Shipment
+method: PATCH
+url: '{{baseUrl}}/api/shipments/{{shipmentId}}/receive'
+description: Mark a shipment as received at destination hub. Admin/staff only.
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "note": "Received at Delhi hub"
+    }

@@ -1,0 +1,20 @@
+$kind: http-request
+name: List Pickups
+method: GET
+url: '{{baseUrl}}/api/pickups'
+description: |-
+  List all pickups.
+  Query params: status (Requested|Assigned|Picked|Cancelled), assignedAgent (agent ID), onlyMine (true)
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+queryParams:
+  - key: status
+    value: Requested
+    disabled: true
+  - key: onlyMine
+    value: 'true'
+    disabled: true

@@ -1,0 +1,30 @@
+$kind: http-request
+name: Complete Pickup
+method: PUT
+url: '{{baseUrl}}/api/pickups/{{pickupId}}/complete'
+description: |-
+  Mark a pickup as completed with proof. Agent only (must be the assigned agent).
+  Requires photoUrl and actualCount. Auto-creates parcels on completion.
+order: 6000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "photoUrl": "https://example.com/proof.jpg",
+      "actualCount": 2,
+      "signatureUrl": "https://example.com/signature.png",
+      "completionNotes": "Picked up successfully",
+      "location": "Mumbai",
+      "gps": {
+        "lat": 19.076,
+        "lng": 72.877
+      }
+    }

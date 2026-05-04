@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get Agent Deliveries
+method: GET
+url: '{{baseUrl}}/api/shipments/agent/deliveries'
+description: Get shipments assigned to the current agent that are In Transit. Agent only.
+order: 9000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

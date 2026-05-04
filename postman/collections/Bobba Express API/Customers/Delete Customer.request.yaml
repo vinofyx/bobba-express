@@ -1,0 +1,11 @@
+$kind: http-request
+name: Delete Customer
+method: DELETE
+url: '{{baseUrl}}/api/customers/{{customerId}}'
+description: Soft-delete (deactivate) a customer. Admin only.
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

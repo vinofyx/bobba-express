@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get My Profile
+method: GET
+url: '{{baseUrl}}/api/users/me'
+description: Get the current user's profile.
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

@@ -1,0 +1,29 @@
+$kind: http-request
+name: Create Shipment
+method: POST
+url: '{{baseUrl}}/api/shipments'
+description: |-
+  Create a new shipment with parcels. Admin/staff only.
+  Only parcels with "At Center" status can be added.
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "vehicleNumber": "MH-01-AB-1234",
+      "driver": {
+        "name": "Suresh Driver",
+        "phone": "9988776655"
+      },
+      "originHub": "Mumbai",
+      "destinationHub": "Delhi",
+      "parcelIds": ["{{parcelId}}"]
+    }

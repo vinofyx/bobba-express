@@ -1,0 +1,25 @@
+$kind: http-request
+name: Mark Parcel Delivered
+method: PATCH
+url: '{{baseUrl}}/api/parcels/{{parcelId}}/delivered'
+description: |-
+  Mark a parcel as delivered. Admin/staff/agent.
+  Requires photoProof and recipientName.
+order: 7000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "photoProof": "https://example.com/delivery-proof.jpg",
+      "recipientName": "Priya Sharma",
+      "signature": "https://example.com/signature.png",
+      "note": "Delivered successfully"
+    }

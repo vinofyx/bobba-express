@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { register, login, getCurrentUser, refreshToken, logout } = require('../controllers/auth.controller');
-const validate = require('../src/middleware/validate');
-const { registerSchema, loginSchema } = require('../src/validators/auth.validator');
-const authenticate = require('../src/middleware/authenticate');
 
 // ── GET hints (browser-friendly info for POST-only endpoints) ────────────────
 const hint = (method, path, body) => (_, res) => res.json({
@@ -18,19 +15,19 @@ router.get('/logout',   hint('POST', '/api/auth/logout',   'requires Bearer toke
 router.get('/refresh',  hint('POST', '/api/auth/refresh',  'uses httpOnly refresh cookie — no body needed'));
 
 // POST /api/auth/register
-router.post('/register', validate(registerSchema), register);
+router.post('/register', register);
 
 // POST /api/auth/login
-router.post('/login', validate(loginSchema), login);
+router.post('/login', login);
 
 // GET /api/auth/me (protected)
-router.get('/me', authenticate, getCurrentUser);
+router.get('/me', getCurrentUser);
 
 // POST /api/auth/refresh
 router.post('/refresh', refreshToken);
 
 // POST /api/auth/logout
-router.post('/logout', authenticate, logout);
+router.post('/logout', logout);
 
 module.exports = router;
 

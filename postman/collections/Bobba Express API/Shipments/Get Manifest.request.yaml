@@ -1,0 +1,11 @@
+$kind: http-request
+name: Get Manifest
+method: GET
+url: '{{baseUrl}}/api/shipments/{{shipmentId}}/manifest'
+description: Generate a shipment manifest with all parcel details.
+order: 7000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

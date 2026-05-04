@@ -1,0 +1,11 @@
+$kind: http-request
+name: Logout
+method: POST
+url: '{{baseUrl}}/api/auth/logout'
+description: Logout the current user. Clears the refresh token cookie.
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

@@ -1,0 +1,11 @@
+$kind: http-request
+name: Generate Label
+method: GET
+url: '{{baseUrl}}/api/parcels/{{parcelId}}/label'
+description: Generate a shipping label for a parcel.
+order: 6000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

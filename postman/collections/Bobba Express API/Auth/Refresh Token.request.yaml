@@ -1,0 +1,6 @@
+$kind: http-request
+name: Refresh Token
+method: POST
+url: '{{baseUrl}}/api/auth/refresh'
+description: Refresh the access token using the httpOnly refresh cookie. No body needed.
+order: 4000

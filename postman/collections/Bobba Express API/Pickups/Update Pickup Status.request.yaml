@@ -1,0 +1,28 @@
+$kind: http-request
+name: Update Pickup Status
+method: PATCH
+url: '{{baseUrl}}/api/pickups/{{pickupId}}/status'
+description: |-
+  Update the status of a pickup.
+  Valid statuses: Requested, Assigned, Picked, Cancelled
+order: 7000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "Assigned",
+      "note": "Status updated manually",
+      "location": "Mumbai",
+      "gps": {
+        "lat": 19.076,
+        "lng": 72.877
+      }
+    }

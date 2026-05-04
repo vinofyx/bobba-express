@@ -1,0 +1,6 @@
+$kind: http-request
+name: API Test
+method: GET
+url: '{{baseUrl}}/api/test'
+description: Simple API test endpoint.
+order: 2000

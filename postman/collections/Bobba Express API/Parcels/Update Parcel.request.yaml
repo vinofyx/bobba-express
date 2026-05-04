@@ -1,0 +1,37 @@
+$kind: http-request
+name: Update Parcel
+method: PUT
+url: '{{baseUrl}}/api/parcels/{{parcelId}}'
+description: Update parcel details (weight, dimensions, type, codAmount, receiver). Admin/staff only.
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "weight": 3.0,
+      "dimensions": {
+        "length": 35,
+        "width": 25,
+        "height": 20
+      },
+      "type": "parcel",
+      "codAmount": 500,
+      "receiver": {
+        "name": "Priya Sharma",
+        "phone": "9123456789",
+        "address": {
+          "line1": "789 Receiver Lane",
+          "city": "Delhi",
+          "state": "Delhi",
+          "pincode": "110001"
+        }
+      }
+    }

@@ -1,0 +1,39 @@
+$kind: http-request
+name: Create Parcel
+method: POST
+url: '{{baseUrl}}/api/parcels'
+description: Create a new parcel linked to a pickup. Admin/staff/agent only.
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "pickupId": "{{pickupId}}",
+      "weight": 2.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "quantity": 1,
+      "codAmount": 0,
+      "type": "parcel",
+      "receiver": {
+        "name": "Priya Sharma",
+        "phone": "9123456789",
+        "address": {
+          "line1": "789 Receiver Lane",
+          "city": "Delhi",
+          "state": "Delhi",
+          "pincode": "110001"
+        }
+      }
+    }

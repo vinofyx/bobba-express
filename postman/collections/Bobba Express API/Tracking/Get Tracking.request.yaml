@@ -1,0 +1,8 @@
+$kind: http-request
+name: Get Tracking
+method: GET
+url: '{{baseUrl}}/api/tracking/{{trackingId}}'
+description: |-
+  Get tracking information for a parcel by tracking ID. Public endpoint — no auth required.
+  Tracking IDs follow the format: BE-XXXXXX (e.g. BE-ABC123)
+order: 1000

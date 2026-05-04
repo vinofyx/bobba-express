@@ -1,0 +1,27 @@
+$kind: http-request
+name: Add Tracking Event
+method: POST
+url: '{{baseUrl}}/api/tracking'
+description: Manually add a tracking event for a parcel. Admin/staff only.
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "parcelId": "{{parcelId}}",
+      "status": "In Transit",
+      "location": "Mumbai Hub",
+      "note": "Parcel scanned at hub",
+      "gps": {
+        "lat": 19.076,
+        "lng": 72.877
+      }
+    }

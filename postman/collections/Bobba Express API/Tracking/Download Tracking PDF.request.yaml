@@ -1,0 +1,6 @@
+$kind: http-request
+name: Download Tracking PDF
+method: GET
+url: '{{baseUrl}}/api/tracking/{{trackingId}}/download'
+description: Download tracking information as a JSON file (PDF in production). Public endpoint.
+order: 2000

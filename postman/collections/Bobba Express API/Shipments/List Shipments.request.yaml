@@ -1,0 +1,17 @@
+$kind: http-request
+name: List Shipments
+method: GET
+url: '{{baseUrl}}/api/shipments'
+description: |-
+  List all shipments.
+  Query params: status (Created|Dispatched|In Transit|Received|Completed)
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+queryParams:
+  - key: status
+    value: Created
+    disabled: true
